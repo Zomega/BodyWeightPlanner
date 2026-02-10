@@ -1,0 +1,748 @@
+@font-face {
+    font-family: dki;
+    src: url(/web/20250206064312im_/https://www.niddk.nih.gov/bwp/styles/dki.woff) format("woff");
+    font-weight: 400;
+    font-style: normal;
+}
+
+body {
+    background-color: #eeeded;
+}
+
+/* .hhs-top-bar a, .hhs-top-bar a:visited, .hhs-top-bar a:hover, .hhs-top-bar a:active {
+    color: #575757;
+} */
+
+.main-header {
+    background-color: #fff;
+}
+
+.site-logo {
+    max-width: 300px;
+    max-height: 67px;
+    margin: 1.5rem 0;
+}
+
+.planner-main {
+    margin: 1.5rem 0;
+    background-color: #fff;
+    box-shadow: 0 1.5px 16px rgba(0, 0, 0, 0.1);
+}
+
+footer {
+    background-color: #2a2b28;
+    color: #fff;
+    padding: 2rem 0;
+    font-family: "Open Sans", Helvetica, sans-serif;
+}
+
+footer a, footer a:visited, footer a:hover, footer a:active {
+    color: #fff;
+}
+
+footer a, .hhs-top-bar a {
+    text-decoration: none;
+}
+
+footer a:hover, footer a:active, .hhs-top-bar a:hover, .hhs-top-bar a:active {
+    text-decoration: underline;
+}
+
+footer ul {
+    list-style: none;
+    text-align: center;
+}
+
+footer li {
+    display: inline;
+}
+
+footer li:before {
+    content: '| ';
+}
+
+footer li:first-child:before {
+    content: normal;
+}
+
+.eld {
+    display: inline-block;
+    position: relative;
+    height: 1em;
+    overflow: hidden;
+}
+  
+.eld::before {
+    content: "\e03a";
+    display: inline-block;
+    position: relative;
+    top: 2px;
+    vertical-align: top;
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    font-size: 1em;
+    font-family: dki;
+    line-height: 1;
+    text-rendering: auto;
+    text-transform: none;
+    text-decoration: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/*START mitigate bad configuration of CNPP IE browser. Would not load fonts*/
+
+.glyphicon-circle-arrow-right {
+    background-image: url("/web/20250206064312im_/https://www.niddk.nih.gov/bwp/styles/glyphicons/rightArrow.png");
+    background-repeat: no-repeat;
+    width: 25px;
+    height: 17px;
+}
+
+.glyphicon-circle-arrow-right:before {
+    content: "";
+}
+
+.glyphicon-paste {
+    background-image: url("/web/20250206064312im_/https://www.niddk.nih.gov/bwp/styles/glyphicons/starting.png");
+    background-repeat: no-repeat;
+    width: 25px;
+    height: 17px;
+}
+
+.glyphicon-paste:before {
+    content: "";
+}
+
+.glyphicon-circle-arrow-left {
+    background-image: url("/web/20250206064312im_/https://www.niddk.nih.gov/bwp/styles/glyphicons/leftArrow.png");
+    background-repeat: no-repeat;
+    width: 25px;
+    height: 17px;
+}
+
+.glyphicon-circle-arrow-left:before {
+    content: "";
+}
+
+.glyphicon-chevron-right {
+    background-image: url("/web/20250206064312im_/https://www.niddk.nih.gov/bwp/styles/glyphicons/chevronRight.png");
+    background-repeat: no-repeat;
+    width: 25px;
+    height: 17px;
+}
+
+.glyphicon-chevron-right:before {
+    content: "";
+}
+
+.glyphicon-chevron-left {
+    background-image: url("/web/20250206064312im_/https://www.niddk.nih.gov/bwp/styles/glyphicons/chevronLeft.png");
+    background-repeat: no-repeat;
+    width: 25px;
+    height: 17px;
+}
+
+.glyphicon-chevron-left:before {
+    content: "";
+}
+
+.glyphicon-info-sign {
+    background-image: url("/web/20250206064312im_/https://www.niddk.nih.gov/bwp/styles/glyphicons/info.png");
+    background-repeat: no-repeat;
+    width: 25px;
+    height: 17px;
+}
+
+.glyphicon-info-sign:before {
+    content: "";
+}
+
+.glyphicon-exclamation-sign {
+    background-image: url("/web/20250206064312im_/https://www.niddk.nih.gov/bwp/styles/glyphicons/exclamation-sign.png");
+    background-repeat: no-repeat;
+    width: 25px;
+    height: 17px;
+}
+
+.glyphicon-exclamation-sign:before {
+    content: "";
+}
+
+.graphInfo > .glyphicon-info-sign, .modal-title > .glyphicon-info-sign {
+    background-image: url("/web/20250206064312im_/https://www.niddk.nih.gov/bwp/styles/glyphicons/infoBlueLg.png");
+    background-repeat: no-repeat;
+    width: 25px;
+    height: 20px;
+}
+
+
+/*End mitigate bad configuration of NIDDK computers. Would not load fonts*/
+
+.activityChangeRow {
+    border-bottom: 1px solid gray;
+    padding-bottom: 5px;
+    margin-bottom: 5px;
+}
+
+body {
+    padding: 0;
+}
+
+table td {
+    padding: 1px;
+}
+
+.modal {
+    display: block;
+}
+
+.advanced {
+    background-color: #dfdfdf;
+    padding: 3px;
+}
+
+h5 {
+    margin-bottom: 0;
+    margin-top: 0;
+}
+
+.input-group-btn select {
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-top: 7px;
+    padding-bottom: 7px;
+    /*color: #3c763d;
+            background-color: #dff0d8;
+            border-color: #3c763d;*/
+    background-color: #265a88;
+    background-image: linear-gradient(to bottom, #337ab7 0, #265a88 100%);
+    background-repeat: repeat-x;
+    border-color: #245580;
+    color: #fff !important;
+    /*width: 132px;*/
+    /*min-width of starting was 435px*/
+    width: 85px;
+}
+
+.input-group-btn select option {
+    color: #000;
+    background-color: #fff;
+}
+
+.glyphicon {
+    padding-right: 5px;
+}
+
+.label {
+    font-size: 13px;
+    line-height: 28px;
+}
+
+.iga-width {
+    width: 170px;
+    text-align: left;
+}
+
+.iga-width-w {
+    width: 188px;
+    text-align: left;
+}
+
+.int-wide {
+    width: 230px;
+    text-align: left;
+}
+
+.iga-width-e {
+    width: 50px;
+    text-align: center;
+}
+
+.iga-width-ew {
+    width: 75px;
+    text-align: center;
+}
+
+.iga-width-exw {
+    width: 85px;
+    text-align: center;
+}
+
+.w100 {
+    width: 100% !important;
+}
+
+.panel-body {
+    padding: 7px 7px 2px 7px;
+}
+
+.panel-footer {
+    padding: 7px 7px 2px 7px;
+}
+
+.simLabel {
+    display: inline-block;
+    width: 90px;
+    line-height: 32px;
+    text-align: right !important;
+    padding-right: 3px;
+}
+
+.panel-heading {
+    font-weight: bold;
+}
+
+.simVal {
+    display: inline-block;
+    width: 50px;
+    padding: 0;
+    text-align: right !important;
+    padding-right: 7px;
+}
+
+.btn-block {
+    margin-top: 0 !important;
+}
+
+.form-group {
+    /*margin-bottom: 7px;*/
+}
+
+.div-center {
+    margin: 0 auto;
+    text-align: center;
+}
+
+.alert {
+    margin-bottom: 5px;
+    padding: 3px;
+}
+
+.has-success .input-group-addon, .alert-success {
+    color: #2F4B21 !important;
+}
+
+.icon-success {
+    color: #5CB85C;
+}
+
+.modal-header {
+    padding: 9px 15px;
+    border-bottom: 1px solid #eee;
+    background-color: #c4e3f3;
+    background-image: -webkit-linear-gradient(top, #d9edf7 0, #c4e3f3 100%);
+    background-image: -o-linear-gradient(top, #d9edf7 0, #c4e3f3 100%);
+    background-image: -webkit-gradient(linear, left top, left bottom, from(#d9edf7), to(#c4e3f3));
+    background-image: linear-gradient(to bottom, #d9edf7 0, #c4e3f3 100%);
+    background-repeat: repeat-x;
+    -webkit-border-top-left-radius: 5px;
+    -webkit-border-top-right-radius: 5px;
+    -moz-border-radius-topleft: 5px;
+    -moz-border-radius-topright: 5px;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    font-size: 14px;
+    color: #31708f;
+}
+
+.modal-title {
+    font-weight: bold;
+}
+
+.form-inline .form-control {
+    width: auto;
+}
+
+.form-inline .form-group {
+    display: inline-block;
+}
+
+.calBtn {
+    background-image: linear-gradient(to bottom, #dff0d8 0, #dff0d8 100%);
+    color: #2F4B21;
+    border-color: #3c763d;
+}
+
+.nav > li > a {
+    bottom: -1px !important;
+}
+
+.inputIn {
+    width: 31px;
+    padding-right: 5px;
+    padding-left: 5px;
+}
+
+.lastAddon {
+    border-radius: 4px !important;
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+}
+
+.resultsHighlight {
+    background-color: #fefefe;
+    padding: 7px;
+    border-radius: 4px;
+    border: 1px solid #808080;
+}
+
+.modal-body a {
+    color: #0072c6;
+    font-weight: bold;
+}
+
+.guidedPaddingStep1 {
+    padding-left: 415px;
+}
+
+.guidedPanelStep1 {
+    min-width: 415px;
+    width: 415px;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.guidedPadding {
+    padding-left: 350px;
+}
+
+.guidedPanel {
+    min-width: 350px;
+    width: 350px;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+@media screen and (max-width: 767px) {
+    .guidedPadding, .guidedPaddingStep1 {
+        padding-left: 20px;
+        padding-right: 10px;
+    }
+}
+
+@media screen and (min-width: 1510px) {
+    .rightPanels {
+        min-width: 1100px;
+    }
+}
+
+
+/*custom navbar colors*/
+
+.navbar-default {
+    background-color: #fff;
+    border: 0;
+}
+
+.navbar-default .navbar-brand {
+    color: #575757;
+    font-family: "Open Sans", Helvetica, sans-serif;
+}
+
+.navbar-default .navbar-brand-title {
+    display: inline;
+    font-size: 30px;
+}
+
+.navbar-default .navbar-brand-title h1 {
+    display: inline;
+    font-weight: 600;
+    font-size: inherit;
+}
+
+.navbar-default .navbar-brand-title .hidden-xs {
+    display: inline-block;
+    border-left: solid 2px #575757;
+    padding-left: 2rem;
+    margin-left: 1.7rem;
+}
+
+.navbar-default .navbar-brand:hover, .navbar-default .navbar-brand:focus {
+    color: #192f05;
+}
+
+.navbar-default .navbar-text {
+    color: #575757;
+}
+
+.navbar-default .navbar-nav {
+    background-color: #d9edf7;
+}
+
+.navbar-default .navbar-nav > li > a {
+    color: #575757;
+}
+
+.navbar-default .navbar-nav > li > a:hover, .navbar-default .navbar-nav > li > a:focus {
+    color: #192f05;
+}
+
+.navbar-default .navbar-nav > .active > a, .navbar-default .navbar-nav > .active > a:hover, .navbar-default .navbar-nav > .active > a:focus {
+    color: #192f05;
+    background-color: #5bc0de;
+}
+
+.navbar-default .navbar-nav > .open > a, .navbar-default .navbar-nav > .open > a:hover, .navbar-default .navbar-nav > .open > a:focus {
+    color: #192f05;
+    background-color: #5bc0de;
+}
+
+.navbar-default .navbar-toggle {
+    border-color: #5bc0de;
+}
+
+.navbar-default .navbar-toggle:hover, .navbar-default .navbar-toggle:focus {
+    background-color: #5bc0de;
+}
+
+.navbar-default .navbar-toggle .icon-bar {
+    background-color: #4c6c2e;
+}
+
+.navbar-default .navbar-collapse, .navbar-default .navbar-form {
+    border-color: #4c6c2e;
+}
+
+.navbar-default .navbar-collapse {
+    border-top: 0;
+}
+
+.navbar-default .navbar-link {
+    color: #4c6c2e;
+}
+
+.navbar-default .navbar-link:hover {
+    color: #192f05;
+}
+
+@media (max-width: 767px) {
+    .navbar-default .navbar-nav .open .dropdown-menu > li > a {
+        color: #4c6c2e;
+    }
+    .navbar-default .navbar-nav .open .dropdown-menu > li > a:hover, .navbar-default .navbar-nav .open .dropdown-menu > li > a:focus {
+        color: #192f05;
+    }
+    .navbar-default .navbar-nav .open .dropdown-menu > .active > a, .navbar-default .navbar-nav .open .dropdown-menu > .active > a:hover, .navbar-default .navbar-nav .open .dropdown-menu > .active > a:focus {
+        color: #192f05;
+        background-color: #5bc0de;
+    }
+}
+
+
+/*navbar pcx mods*/
+
+.navbar-brand:hover {
+    color: #575757 !important;
+}
+
+.navbar-brand {
+    padding: 5px 15px 5px 15px;
+    vertical-align: middle;
+}
+
+.navbar-brand-title {
+    padding-left: 15px;
+    vertical-align: middle;
+    font-size: 30px;
+}
+
+.navbar-brand-title .hidden-xs {
+    font-size: 21px;
+}
+
+.navbar-brand-img {
+    height: 45px;
+    display: inline-block !important;
+    vertical-align: middle;
+}
+
+.navbar-title {
+    margin: 0;
+    display: inline-block;
+}
+
+.heightPadding {
+    padding-right: 3px;
+    padding-left: 3px;
+}
+
+.inputFt {
+    width: 31px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+/*file icon*/
+.file-pdf:before {
+    content: url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IiB2aWV3Qm94PSIwIDAgMzUwIDM1MCIgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAwIDAgMzUwIDM1MCIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+PGc+PHBhdGggZmlsbD0iIzdBN0E3QSIgZD0iTTU0LDM0N2MtMS42NSwwLTMtMS4zNS0zLTNWMTJjMC0xLjY1LDEuMzUtMywzLTNoMTgzLjk1TDMwOCw3Ny4wN1YzNDRjMCwxLjY1LTEuMzUsMy0zLDNINTR6Ii8+PHBhdGggZmlsbD0iIzdBN0E3QSIgZD0iTTIzNi43MywxMkwzMDUsNzguMzNMMzA1LDM0NGwtMjUxLDBsMC0zMzJIMjM2LjczIE0yMzkuMTYsNkg1NGMtMy4zLDAtNiwyLjctNiw2djMzMmMwLDMuMywyLjcsNiw2LDZoMjUxIGMzLjMsMCw2LTIuNyw2LTZWNzUuOEwyMzkuMTYsNkwyMzkuMTYsNnoiLz48L2c+PGc+PGxpbmVhckdyYWRpZW50IGlkPSJTVkdJRF8xXyIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiIHgxPSIxNzAuNTAwMyIgeTE9IjIuOTk5IiB4Mj0iMTcwLjUwMDMiIHkyPSIzNDEuMDAxIj48c3RvcCAgb2Zmc2V0PSIwIiBzdHlsZT0ic3RvcC1jb2xvcjojRkZGRkZGIi8+PHN0b3AgIG9mZnNldD0iMC42NjMyIiBzdHlsZT0ic3RvcC1jb2xvcjojRUZFRkVGIi8+PHN0b3AgIG9mZnNldD0iMSIgc3R5bGU9InN0b3AtY29sb3I6I0U2RTZFNiIvPjwvbGluZWFyR3JhZGllbnQ+PHBhdGggZmlsbD0idXJsKCNTVkdJRF8xXykiIGQ9Ik00NSwzNDFjLTEuNjUsMC0zLTEuMzUtMy0zVjZjMC0xLjY1LDEuMzUtMywzLTNoMTgzLjk1TDI5OSw3MS4wN1YzMzhjMCwxLjY1LTEuMzUsMy0zLDNINDV6Ii8+DQo8cGF0aCBmaWxsPSIjN0E3QTdBIiBkPSJNMjI3LjczLDZMMjk2LDcyLjMzTDI5NiwzMzhsLTI1MSwwTDQ1LDZIMjI3LjczIE0yMzAuMTYsMEg0NWMtMy4zLDAtNiwyLjctNiw2djMzMmMwLDMuMywyLjcsNiw2LDZoMjUxIGMzLjMsMCw2LTIuNyw2LTZWNjkuOEwyMzAuMTYsMEwyMzAuMTYsMHoiLz48L2c+PGcgb3BhY2l0eT0iMC45Ij48cGF0aCBmaWxsPSIjQ0MwMDAwIiBkPSJNMjExLjExLDIwNC42OWM4LjQxLTEsMTYuMjEtMS40LDIzLjQyLTEuNGMxMy40MSwwLDMwLjQyLDEuNiwzNS40Myw5LjgxYzEuNCwyLDIuNiw1LjYxLDAuNCwxMC40MSBjLTAuMiwwLjItMC40LDAuNi0wLjYsMC44djAuMmMtMC42LDMuNi0zLjYsNy42MS0xNC4yMSw3LjYxYy0xMi44MSwwLTMyLjIyLTUuOC00OS4wNC0xNC42MWMtMjcuODIsMy01Ny4wNCw5LjIxLTc4LjQ2LDE2LjYxIGMtMjAuNjIsMzUuMjMtMzYuNDMsNTIuNDQtNDguNDQsNTIuNDRjLTIsMC0zLjgtMC40LTUuNi0xLjRsLTQuOC0yLjRjLTAuNi0wLjItMC44LTAuNi0xLjItMWMtMS0xLTEuOC0zLjItMS4yLTcuMjEgYzItOS4yMSwxMi44MS0yNC42MiwzNy42My0zNy42M2MxLjYtMSwzLjYtMC40LDQuNiwxLjJjMC4yLDAuMiwwLjQsMC42LDAuNCwwLjhjNi4yLTEwLjIxLDEzLjQxLTIzLjIyLDIxLjQyLTM5LjQzIGM5LjAxLTE4LjAxLDE2LjAxLTM1LjYzLDIwLjgyLTUyLjQ0Yy02LjQxLTIxLjgyLTguNDEtNDQuMjQtNC44LTU3LjQ1YzEuNC01LDQuNC04LjAxLDguNDEtOC4wMWg0LjJoMC4yYzMsMCw1LjQxLDEsNy4wMSwzIGMyLjQsMi44LDMsNy4yMSwxLjgsMTMuNjFjLTAuMiwwLjYtMC40LDEuMi0wLjgsMS42YzAuMiwwLjYsMC4yLDEsMC4yLDEuNmMwLDIsMCw0LDAsNmMtMC4yLDEyLjYxLTAuNCwyNC42Mi0yLjgsMzguNDMgYzcuMDEsMjEuMDIsMTcuNDEsMzguMDMsMjkuMjIsNDcuNjRDMTk5LjMsMTk3LjQ5LDIwNC45LDIwMS4wOSwyMTEuMTEsMjA0LjY5eiBNMTA2LjQyLDI0NC4xMkM5MS40MSwyNTUuNzMsODIsMjY4Ljk0LDc5LDI3NS43NQ0KQzg1LjAxLDI3Mi45NSw5My42MSwyNjQuMzQsMTA2LjQyLDI0NC4xMnogTTE5MC42OSwyMDcuNjljLTItMS42LTQtMy01LjgtNC42Yy05LjgxLTguNjEtMTguNjEtMjAuNjItMjUuNDItMzUuMjMgYy0zLjgsMTIuMjEtOS40MSwyNS4yMi0xNi42MSwzOS40M2MtMyw1LjYtNi4wMSwxMS4yMS05LjAxLDE2LjYxQzE1MS40NiwyMTYuOSwxNzEuMDcsMjExLjMsMTkwLjY5LDIwNy42OXogTTE1OC4yNiwxMTguMDIgYzAuNi0zLjIsMS02LjIxLDEuNC04LjgxYzAuNC0zLjQsMS02LjIsMS40LTguNjFjMC4yLTAuNiwwLjQtMSwwLjgtMS42Yy0wLjItMC4yLTAuMi0wLjYtMC40LTFjLTAuMi0zLjYtMS40LTUuOC0yLjYtNy4yMSBjMCwwLjQtMC4yLDAuNi0wLjIsMC44QzE1Ni42Niw5Ny4yMSwxNTYuNjYsMTA2LjgxLDE1OC4yNiwxMTguMDJ6IE0yMzUuMTIsMjE1LjljOS44MSwzLjYsMTguODIsNS42LDI0LjgyLDUuNiBjMS44LDAsMi44LDAsMy42LTAuMmMwLTAuMi0wLjItMC40LTAuNC0wLjZDMjYyLjE1LDIxOS43LDI1Ni45NCwyMTUuOSwyMzUuMTIsMjE1Ljl6Ii8+PC9nPjxwYXRoIGZpbGw9IiM3QTdBN0EiIGQ9Ik0zMTEsNzguNDdoLTc2LjI4Yy0zLjE2LDAtNS43Mi0yLjU3LTUuNzItNS43NFYwaDQuNzRMMzExLDc1LjU4Vjc4LjQ3eiIvPjwvc3ZnPg==');
+    display: inline-block;
+    height: 1.25em;
+    margin-top: -0.125em;
+    vertical-align: middle;
+    width: 1.25em;
+    font-size: 1.01em;
+    box-sizing: border-box;
+}
+
+/* Update navigation inactive tab link color contrast for accessibility */
+.nav-tabs > li > a {
+    color: #31708f;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Adjust links to give visual feedback other than color for accessibility */
+a {
+    text-decoration: underline;
+}
+a:focus, a:hover {
+    text-decoration: none;
+}
+a.btn, a.dropdown-toggle, a[role=button], .dropdown-menu a {
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Adjust label text contrast for accessibility */
+.label-default {
+    background-color: #707070;
+}
+
+/* US Government banner */
+.usa-banner {
+    padding-bottom: 0;
+    line-height: 1.6;
+    color: #575757;
+    font-family: "Montserrat", Helvetica, sans-serif;
+    font-size: 1.2rem;
+}
+
+.usa-banner__header {
+    position: relative;
+    padding: 0.4rem 0;
+}
+
+.usa-banner__inner {
+    display: flex;
+}
+
+.usa-banner__inner button {
+    margin-top: -1px;
+    margin-left: 0.5rem;
+}
+
+.usa-banner__inner button[aria-expanded=false]::after {
+    content: '\e038';
+}
+
+.usa-banner__inner button[aria-expanded=true]::after {
+    content: '\e037';
+}
+
+.usa-banner__inner button {
+    appearance: none;
+    border: 0;
+    padding: 0;
+    background: none;
+    font: inherit;
+    color: #004b8d;
+    cursor: pointer;
+}
+
+.usa-banner__inner button span {
+    text-decoration: underline;
+}
+
+.usa-banner__inner button::after {
+    display: inline-block;
+    font-family: dki;
+    font-size: inherit;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1;
+    text-rendering: auto;
+    text-transform: none;
+    -webkit-font-smoothing: antialiased;
+    position: relative;
+    top: 1px;
+    font-variant: normal;
+    text-decoration: none;
+    
+    top: 0;
+    margin-left: 2px;
+    font-size: 0.96rem;
+    color: inherit;
+}
+
+.usa-banner__inner p {
+    margin: 0;
+}
+
+.usa-banner__inner-flag {
+    flex: 0 1 auto;
+    padding: 1px 7px 0 0;
+}
+
+.usa-banner__content {
+    font-size: 1.4rem;
+    padding: 1.4rem 0;
+}
+
+.usa-banner__content > div {
+    display: flex;
+    flex: 0 1 50%;
+    align-items: flex-start;
+}
+
+.usa-banner__content > div > svg,
+.usa-banner__content > div > img {
+    flex: 0 0 auto;
+    width: 4rem;
+    height: 4rem;
+    margin-right: 0.7rem;
+}
+
+.usa-banner__content > div p {
+    margin: 0;
+}
+
+.usa-banner__content:not([hidden]) {
+    display: flex;
+}
+
+.usa-banner__content > div:first-child {
+    margin-right: 0.7rem;
+}
+
+.usa-banner__content > div:last-child {
+    margin-left: 0.7rem;
+}
+
+.usa-banner__lock-image {
+    height: 1.5ex;
+    width: 1.21875ex;
+}
+
+/*
+     FILE ARCHIVED ON 06:43:12 Feb 06, 2025 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 17:48:25 Feb 10, 2026.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+*/
+/*
+playback timings (ms):
+  captures_list: 0.691
+  exclusion.robots: 0.03
+  exclusion.robots.policy: 0.014
+  esindex: 0.015
+  cdx.remote: 126.545
+  LoadShardBlock: 94.01 (3)
+  PetaboxLoader3.datanode: 100.848 (5)
+  load_resource: 73.613
+  PetaboxLoader3.resolve: 40.265
+  loaddict: 17.999
+*/
