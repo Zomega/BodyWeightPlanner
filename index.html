@@ -1,372 +1,512 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Body Weight Planner</title>
-    <link rel="icon" href="data:,">
-    <link rel="stylesheet" href="css/bwp.css">
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="css/bwp.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
-</head>
-<body>
+  </head>
+  <body>
     <header class="main-header">
-        <div class="container">
-            <h1>Body Weight Planner</h1>
-            <p>Modernized scientific tool for weight management</p>
-            <div class="header-controls">
-                <div class="unit-toggle-container">
-                    <label class="toggle-label">System:</label>
-                    <div class="toggle-group">
-                        <button id="unit-metric" class="toggle-btn active">Metric (kg/cm)</button>
-                        <button id="unit-us" class="toggle-btn">U.S. (lbs/ft)</button>
-                    </div>
-                </div>
-                <div class="unit-toggle-container">
-                    <label class="toggle-label">Energy:</label>
-                    <div class="toggle-group">
-                        <button id="unit-cals" class="toggle-btn active">Calories</button>
-                        <button id="unit-kj" class="toggle-btn">Kilojoules</button>
-                    </div>
-                </div>
-                <div class="unit-toggle-container">
-                    <label class="toggle-label">Advanced Controls:</label>
-                    <div class="toggle-group">
-                        <button id="toggle-advanced-show" class="toggle-btn">Show</button>
-                        <button id="toggle-advanced-hide" class="toggle-btn active">Hide</button>
-                    </div>
-                </div>
+      <div class="container">
+        <h1>Body Weight Planner</h1>
+        <p>Modernized scientific tool for weight management</p>
+        <div class="header-controls">
+          <div class="unit-toggle-container">
+            <label class="toggle-label">System:</label>
+            <div class="toggle-group">
+              <button id="unit-metric" class="toggle-btn active">Metric (kg/cm)</button>
+              <button id="unit-us" class="toggle-btn">U.S. (lbs/ft)</button>
             </div>
+          </div>
+          <div class="unit-toggle-container">
+            <label class="toggle-label">Energy:</label>
+            <div class="toggle-group">
+              <button id="unit-cals" class="toggle-btn active">Calories</button>
+              <button id="unit-kj" class="toggle-btn">Kilojoules</button>
+            </div>
+          </div>
+          <div class="unit-toggle-container">
+            <label class="toggle-label">Advanced Controls:</label>
+            <div class="toggle-group">
+              <button id="toggle-advanced-show" class="toggle-btn">Show</button>
+              <button id="toggle-advanced-hide" class="toggle-btn active">Hide</button>
+            </div>
+          </div>
         </div>
+      </div>
     </header>
 
     <main class="container app-grid">
-        <div class="input-column">
-            <!-- 1. Starting Information -->
-            <section id="starting-info" class="card">
-                <h2>1. Starting Information</h2>
-                <form id="baseline-form">
-                    <div class="form-group">
-                        <label for="weight">Weight (<span class="unit-weight">kg</span>)</label>
-                        <input type="number" id="weight" step="0.1" value="70">
-                    </div>
-                    <div class="form-group">
-                        <label for="sex">Sex</label>
-                        <select id="sex">
-                            <option value="male">Male</option>
-                            <option value="female">Female</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="age">Age (years)</label>
-                        <input type="number" id="age" value="23">
-                    </div>
-                    <div class="form-group height-metric">
-                        <label for="height">Height (cm)</label>
-                        <input type="number" id="height" value="180">
-                    </div>
-                    <div class="form-group height-us" style="display: none;">
-                        <label>Height (ft/in)</label>
-                        <div class="dual-input">
-                            <input type="number" id="height-ft" placeholder="ft" value="5">
-                            <input type="number" id="height-in" placeholder="in" value="11">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="pal">Physical Activity Level (PAL)</label>
-                        <div class="input-with-action">
-                            <input type="number" id="pal" step="0.01" value="1.6" min="1.1" max="2.5">
-                            <button type="button" id="btn-estimate-pal" class="action-btn">Estimate</button>
-                        </div>
-                    </div>
+      <div class="input-column">
+        <!-- 1. Starting Information -->
+        <section id="starting-info" class="card">
+          <h2>1. Starting Information</h2>
+          <form id="baseline-form">
+            <div class="form-group">
+              <label for="weight">Weight (<span class="unit-weight">kg</span>)</label>
+              <input type="number" id="weight" step="0.1" value="70" />
+            </div>
+            <div class="form-group">
+              <label for="sex">Sex</label>
+              <select id="sex">
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="age">Age (years)</label>
+              <input type="number" id="age" value="23" />
+            </div>
+            <div class="form-group height-metric">
+              <label for="height">Height (cm)</label>
+              <input type="number" id="height" value="180" />
+            </div>
+            <div class="form-group height-us hidden">
+              <label>Height (ft/in)</label>
+              <div class="dual-input">
+                <input type="number" id="height-ft" placeholder="ft" value="5" />
+                <input type="number" id="height-in" placeholder="in" value="11" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="pal">Physical Activity Level (PAL)</label>
+              <div class="input-with-action">
+                <input type="number" id="pal" step="0.01" value="1.6" min="1.1" max="2.5" />
+                <button type="button" id="btn-estimate-pal" class="action-btn">Estimate</button>
+              </div>
+            </div>
 
-                    <div class="advanced-controls" style="display: none;">
-                        <div class="form-group">
-                            <label for="carbs-pct">% Calories from Carbs</label>
-                            <input type="number" id="carbs-pct" value="50">
-                        </div>
-                        <div class="form-group">
-                            <label for="sodium">Sodium Intake (mg/day)</label>
-                            <input type="number" id="sodium" value="4000">
-                        </div>
-                        <div class="form-group">
-                            <label for="bfp">% Body Fat</label>
-                            <div class="input-with-action">
-                                <input type="number" id="bfp" step="0.1" value="18">
-                                <select id="bfp-mode" class="mode-select">
-                                    <option value="auto">Auto</option>
-                                    <option value="manual">Manual</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="rmr">Resting Metabolic Rate (cals)</label>
-                            <div class="input-with-action">
-                                <input type="number" id="rmr" value="1716">
-                                <select id="rmr-mode" class="mode-select">
-                                    <option value="auto">Auto</option>
-                                    <option value="manual">Manual</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </section>
-
-            <!-- 2. Goal & Simulation -->
-            <section class="card goal-lifestyle-card">
-                <div class="sub-tabs">
-                    <button id="tab-goal" class="sub-tab-btn active">Weight Goal</button>
-                    <button id="tab-lifestyle" class="sub-tab-btn">Lifestyle Change</button>
+            <div class="advanced-controls hidden">
+              <div class="form-group">
+                <label for="carbs-pct">% Calories from Carbs</label>
+                <input type="number" id="carbs-pct" value="50" />
+              </div>
+              <div class="form-group">
+                <label for="sodium">Sodium Intake (mg/day)</label>
+                <input type="number" id="sodium" value="4000" />
+              </div>
+              <div class="form-group">
+                <label for="bfp">% Body Fat</label>
+                <div class="input-with-action">
+                  <input type="number" id="bfp" step="0.1" value="18" />
+                  <select id="bfp-mode" class="mode-select">
+                    <option value="auto">Auto</option>
+                    <option value="manual">Manual</option>
+                  </select>
                 </div>
-
-                <div id="goal-section" class="panel-content">
-                    <h2>2. Goal Information</h2>
-                    <div class="form-group">
-                        <label for="goal-weight">Goal Weight (<span class="unit-weight">kg</span>)</label>
-                        <input type="number" id="goal-weight" step="0.1" value="70">
-                    </div>
-                    <div class="form-group">
-                        <label for="goal-days">Reach goal in (days)</label>
-                        <input type="number" id="goal-days" value="180">
-                    </div>
-                    <div class="form-group">
-                        <label for="activity-change">Activity Change (%) during goal</label>
-                        <div class="input-with-action">
-                            <input type="number" id="activity-change" value="0">
-                            <button type="button" id="btn-estimate-act-change" class="action-btn">Estimate</button>
-                        </div>
-                    </div>
+              </div>
+              <div class="form-group">
+                <label for="rmr">Resting Metabolic Rate (cals)</label>
+                <div class="input-with-action">
+                  <input type="number" id="rmr" value="1716" />
+                  <select id="rmr-mode" class="mode-select">
+                    <option value="auto">Auto</option>
+                    <option value="manual">Manual</option>
+                  </select>
                 </div>
+              </div>
+            </div>
+          </form>
+        </section>
 
-                <div id="lifestyle-section" class="panel-content" style="display: none;">
-                    <div class="section-header">
-                        <h2>2. Lifestyle Phases</h2>
-                        <button id="add-phase" class="action-btn small">+ Add Phase</button>
-                    </div>
-                    <div id="intervention-list" class="intervention-stack">
-                        <!-- Dynamic content -->
-                    </div>
+        <!-- 2. Goal & Simulation -->
+        <section class="card goal-lifestyle-card">
+          <div class="sub-tabs">
+            <button id="tab-goal" class="sub-tab-btn active">Weight Goal</button>
+            <button id="tab-lifestyle" class="sub-tab-btn">Lifestyle Change</button>
+          </div>
+
+          <div id="goal-section" class="panel-content">
+            <h2>2. Goal Information</h2>
+            <div class="form-group">
+              <label for="goal-weight">Goal Weight (<span class="unit-weight">kg</span>)</label>
+              <input type="number" id="goal-weight" step="0.1" value="70" />
+            </div>
+            <div class="form-group">
+              <label for="goal-days">Reach goal in (days)</label>
+              <input type="number" id="goal-days" value="180" />
+            </div>
+            <div class="form-group">
+              <label for="activity-change">Activity Change (%) during goal</label>
+              <div class="input-with-action">
+                <input type="number" id="activity-change" value="0" />
+                <button type="button" id="btn-estimate-act-change" class="action-btn">
+                  Estimate
+                </button>
+              </div>
+            </div>
+            <div class="form-group advanced-controls hidden">
+              <label for="maint-activity-change">Activity Change (%) during maintenance</label>
+              <div class="input-with-action">
+                <input type="number" id="maint-activity-change" value="0" />
+                <button type="button" id="btn-estimate-maint-act-change" class="action-btn">
+                  Estimate
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div id="lifestyle-section" class="panel-content hidden">
+            <div class="section-header">
+              <h2>2. Lifestyle Phases</h2>
+              <button id="add-phase" class="action-btn small">+ Add Phase</button>
+            </div>
+            <div id="intervention-list" class="intervention-stack">
+              <!-- Dynamic content -->
+            </div>
+          </div>
+
+          <div class="form-group sim-length-group">
+            <label for="sim-length">Simulation Length (days)</label>
+            <input type="number" id="sim-length" value="360" />
+          </div>
+        </section>
+      </div>
+
+      <div class="output-column">
+        <!-- 3. Results -->
+        <section id="results" class="card">
+          <h2>3. Results</h2>
+          <div class="results-grid">
+            <div class="results-group">
+              <div class="result-item">
+                <span class="label">Current BMI:</span>
+                <div class="value-container">
+                  <span id="current-bmi" class="value">-</span>
+                  <span id="bmi-category" class="unit">Normal</span>
                 </div>
-
-                <div class="form-group sim-length-group">
-                    <label for="sim-length">Simulation Length (days)</label>
-                    <input type="number" id="sim-length" value="360">
+              </div>
+              <div class="result-item">
+                <span class="label">Healthy Range:</span>
+                <div class="value-container">
+                  <span id="healthy-range" class="value">-</span>
+                  <span class="unit-weight">kg</span>
                 </div>
-            </section>
-        </div>
+              </div>
+            </div>
 
-        <div class="output-column">
-            <!-- 3. Results -->
-            <section id="results" class="card">
-                <h2>3. Results</h2>
-                <div class="results-grid">
-                    <div class="results-group">
-                        <div class="result-item">
-                            <span class="label">Current BMI:</span>
-                            <div class="value-container">
-                                <span id="current-bmi" class="value">-</span>
-                                <span id="bmi-category" class="unit">Normal</span>
-                            </div>
-                        </div>
-                        <div class="result-item">
-                            <span class="label">Healthy Range:</span>
-                            <div class="value-container">
-                                <span id="healthy-range" class="value">-</span>
-                                <span class="unit-weight">kg</span>
-                            </div>
-                        </div>
-                    </div>
+            <div class="result-item">
+              <span class="label">Maintenance:</span>
+              <div class="value-container">
+                <span id="maint-cals" class="value">-</span>
+                <span class="unit-energy">cals/day</span>
+              </div>
+            </div>
 
-                    <div class="result-item">
-                        <span class="label">Maintenance:</span>
-                        <div class="value-container">
-                            <span id="maint-cals" class="value">-</span>
-                            <span class="unit-energy">cals/day</span>
-                        </div>
-                    </div>
-
-                    <div id="goal-results-group" class="results-group">
-                        <div class="result-item highlight">
-                            <span class="label">Target Intake:</span>
-                            <div class="value-container">
-                                <span id="goal-cals" class="value">-</span>
-                                <span class="unit-energy">cals/day</span>
-                            </div>
-                        </div>
-                        <div class="result-item">
-                            <span class="label">Target BMI:</span>
-                            <div class="value-container">
-                                <span id="target-bmi" class="value">-</span>
-                            </div>
-                        </div>
-                        <div class="result-item">
-                            <span class="label">Future Maint:</span>
-                            <div class="value-container">
-                                <span id="goal-maint-cals" class="value">-</span>
-                                <span class="unit-energy">cals/day</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="lifestyle-results-group" class="results-group" style="display: none;">
-                        <div class="result-item highlight">
-                            <span class="label">Final Weight:</span>
-                            <div class="value-container">
-                                <span id="final-weight" class="value">-</span>
-                                <span class="unit-weight">kg</span>
-                            </div>
-                        </div>
-                        <div class="result-item">
-                            <span class="label">Final BMI:</span>
-                            <div class="value-container">
-                                <span id="final-bmi" class="value">-</span>
-                            </div>
-                        </div>
-                    </div>
+            <div id="goal-results-group" class="results-group">
+              <div class="result-item highlight">
+                <span class="label">Target Intake:</span>
+                <div class="value-container">
+                  <span id="goal-cals" class="value">-</span>
+                  <span class="unit-energy">cals/day</span>
                 </div>
-                <div id="bmi-alert" class="alert-box" style="display: none;"></div>
-            </section>
-
-            <!-- Chart -->
-            <section class="card chart-card">
-                <div class="chart-header">
-                    <h2>4. Weight Projection</h2>
-                    <div class="toggle-group card-toggle">
-                        <button id="chart-weight" class="toggle-btn active">Weight</button>
-                        <button id="chart-fat" class="toggle-btn">Body Fat %</button>
-                    </div>
+              </div>
+              <div class="result-item">
+                <span class="label">Target BMI:</span>
+                <div class="value-container">
+                  <span id="target-bmi" class="value">-</span>
                 </div>
-
-                <div class="advanced-controls" style="display: none;">
-                    <div class="form-group">
-                        <label for="uncertainty">Uncertainty Range (%)</label>
-                        <select id="uncertainty">
-                            <option value="5">5%</option>
-                            <option value="10" selected>10%</option>
-                            <option value="15">15%</option>
-                            <option value="20">20%</option>
-                            <option value="25">25%</option>
-                        </select>
-                    </div>
+              </div>
+              <div class="result-item">
+                <span class="label">Future Maint:</span>
+                <div class="value-container">
+                  <span id="goal-maint-cals" class="value">-</span>
+                  <span class="unit-energy">cals/day</span>
                 </div>
+              </div>
+            </div>
 
-                <div class="chart-container">
-                    <canvas id="mainChart"></canvas>
+            <div id="lifestyle-results-group" class="results-group" class="hidden">
+              <div class="result-item highlight">
+                <span class="label">Final Weight:</span>
+                <div class="value-container">
+                  <span id="final-weight" class="value">-</span>
+                  <span class="unit-weight">kg</span>
                 </div>
+              </div>
+              <div class="result-item">
+                <span class="label">Final BMI:</span>
+                <div class="value-container">
+                  <span id="final-bmi" class="value">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="bmi-alert" class="alert-box" class="hidden"></div>
+        </section>
 
-                <div class="chart-footer">
-                    <button id="btn-export-csv" class="action-btn">Download CSV Data</button>
-                </div>
-            </section>
-        </div>
+        <!-- Chart -->
+        <section class="card chart-card">
+          <div class="chart-header">
+            <h2>4. Weight Projection</h2>
+            <div class="toggle-group card-toggle">
+              <button id="chart-weight" class="toggle-btn active">Weight</button>
+              <button id="chart-fat" class="toggle-btn">Body Fat %</button>
+            </div>
+          </div>
+
+          <div class="advanced-controls" class="hidden">
+            <div class="form-group">
+              <label for="uncertainty">Uncertainty Range (%)</label>
+              <select id="uncertainty">
+                <option value="5">5%</option>
+                <option value="10" selected>10%</option>
+                <option value="15">15%</option>
+                <option value="20">20%</option>
+                <option value="25">25%</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="chart-container">
+            <canvas id="mainChart"></canvas>
+          </div>
+
+          <div class="chart-footer">
+            <button id="btn-export-csv" class="action-btn">Download CSV Data</button>
+          </div>
+        </section>
+      </div>
     </main>
 
-    <dialog id="pal-modal" class="modal">
-        <form method="dialog">
-            <h3>Estimate Physical Activity Level</h3>
-            <div class="form-group">
-                <label for="work-activity">At work or school:</label>
-                <select id="work-activity"></select>
-                <p id="work-desc" class="help-text"></p>
-            </div>
-            <div class="form-group">
-                <label for="leisure-activity">At leisure time:</label>
-                <select id="leisure-activity"></select>
-                <p id="leisure-desc" class="help-text"></p>
-            </div>
-            <div class="modal-actions">
-                <button type="button" id="pal-cancel" class="btn-secondary">Cancel</button>
-                <button type="submit" class="btn-primary">Save</button>
-            </div>
-        </form>
+    <dialog id="pal-modal" class="modal wide">
+      <form method="dialog">
+        <div class="modal-header-toggle">
+          <h3>Estimate Physical Activity Level</h3>
+          <div class="toggle-group card-toggle" id="pal-mode-toggle">
+            <button type="button" class="toggle-btn active" data-mode="simple">Simple</button>
+            <button type="button" class="toggle-btn" data-mode="advanced">Advanced</button>
+          </div>
+        </div>
+
+        <div id="pal-simple-container">
+          <div class="form-group">
+            <label for="work-activity">At work or school:</label>
+            <select id="work-activity"></select>
+            <p id="work-desc" class="help-text"></p>
+          </div>
+          <div class="form-group">
+            <label for="leisure-activity">At leisure time:</label>
+            <select id="leisure-activity"></select>
+            <p id="leisure-desc" class="help-text"></p>
+          </div>
+        </div>
+
+        <div id="pal-advanced-container" class="hidden">
+          <p class="help-text">
+            Build your average daily activity by adding specific tasks. Your PAL will be calculated
+            based on the MET values from the 2024 Compendium.
+          </p>
+          <div id="pal-advanced-list" class="activity-change-stack">
+            <!-- Advanced rows added here -->
+          </div>
+          <div class="total-change-summary">
+            Calculated PAL: <span id="pal-advanced-preview">1.50</span>
+          </div>
+          <button type="button" id="add-pal-advanced-row" class="btn-secondary">
+            + Add Activity
+          </button>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" id="pal-cancel" class="btn-secondary">Cancel</button>
+          <button type="submit" class="btn-primary">Save</button>
+        </div>
+      </form>
     </dialog>
 
+    <template id="pal-advanced-row-template">
+      <div class="activity-row">
+        <div class="row-controls">
+          <div class="searchable-select-container flex-grow min-w-250">
+            <input
+              type="text"
+              class="activity-search"
+              placeholder="Search activity (e.g. 'Walking', 'Cleaning')..."
+            />
+            <select class="activity-select hidden" size="5"></select>
+          </div>
+          <div class="row-inputs">
+            <input type="number" class="act-duration w-60" value="30" min="1" />
+            <span>mins,</span>
+            <input type="number" class="act-frequency w-50" value="1" min="1" />
+            <span>times per</span>
+            <select class="act-period w-80">
+              <option value="1">day</option>
+              <option value="7" selected>week</option>
+            </select>
+            <button type="button" class="remove-activity-btn" title="Remove">&times;</button>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <template id="lifestyle-phase-template">
+      <div class="intervention-box">
+        <div class="intervention-header">
+          <h3>Phase X</h3>
+          <button type="button" class="remove-btn hidden" title="Remove Phase">&times;</button>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Start Day</label>
+            <input type="number" class="phase-day" value="0" min="0" />
+          </div>
+          <div class="form-group">
+            <label>Calories (<span class="unit-energy">cals/day</span>)</label>
+            <input type="number" class="phase-cals" value="2000" min="0" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Activity Change (%)</label>
+            <div class="input-with-action">
+              <input type="number" class="phase-act" value="0" />
+              <button type="button" class="action-btn estimate-phase-act">Estimate</button>
+            </div>
+          </div>
+          <div class="form-group align-end">
+            <div class="checkbox-group">
+              <input type="checkbox" class="phase-ramp" />
+              <label>Ramp to this phase</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
+
     <dialog id="pal-change-modal" class="modal wide">
-        <form method="dialog">
-            <h3>Estimate Activity Change</h3>
-            <p class="help-text">I will make the following changes to my physical activity:</p>
-            <div id="activity-change-list" class="activity-change-stack">
-                <!-- Activity rows will be added here -->
-            </div>
-            <div class="total-change-summary">
-                This represents a change of <span id="total-act-change-pct">0</span>% to your starting activity level.
-            </div>
-            <div class="modal-actions">
-                <button type="button" id="add-activity-row" class="btn-secondary">+ Specify Another Change</button>
-                <div class="right-actions">
-                    <button type="button" id="pal-change-cancel" class="btn-secondary">Cancel</button>
-                    <button type="submit" class="btn-primary">Save</button>
-                </div>
-            </div>
-        </form>
+      <form method="dialog">
+        <h3>Estimate Activity Change</h3>
+        <p class="help-text">I will make the following changes to my physical activity:</p>
+        <div id="activity-change-list" class="activity-change-stack">
+          <!-- Activity rows will be added here -->
+        </div>
+        <div class="total-change-summary">
+          This represents a change of <span id="total-act-change-pct">0</span>% to your starting
+          activity level.
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="add-activity-row" class="btn-secondary">
+            + Specify Another Change
+          </button>
+          <div class="right-actions">
+            <button type="button" id="pal-change-cancel" class="btn-secondary">Cancel</button>
+            <button type="submit" class="btn-primary">Save</button>
+          </div>
+        </div>
+      </form>
     </dialog>
 
     <template id="activity-row-template">
-        <div class="activity-row">
-            <div class="row-controls">
-                <select class="act-direction">
-                    <option value="1">Add</option>
-                    <option value="-1">Remove</option>
-                </select>
-                <select class="act-type">
-                    <option value="3">Light Walking</option>
-                    <option value="4.3">Medium Walking</option>
-                    <option value="5">Intense Walking</option>
-                    <option value="8.3">Light Running</option>
-                    <option value="12.8">Medium Running</option>
-                    <option value="19">Intense Running</option>
-                    <option value="6.8">Light Cycling</option>
-                    <option value="8">Medium Cycling</option>
-                    <option value="10">Intense Cycling</option>
-                    <option value="8.0">Swimming</option>
-                </select>
-                <span>for</span>
-                <select class="act-duration">
-                    <option value="5">5</option><option value="10">10</option><option value="15">15</option>
-                    <option value="20">20</option><option value="25">25</option><option value="30" selected>30</option>
-                    <option value="35">35</option><option value="40">40</option><option value="45">45</option>
-                    <option value="60">60</option><option value="90">90</option><option value="120">120</option>
-                </select>
-                <span>mins,</span>
-                <select class="act-frequency">
-                    <option value="1">1</option><option value="2">2</option><option value="3" selected>3</option>
-                    <option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option>
-                </select>
-                <span>times per</span>
-                <select class="act-period">
-                    <option value="1">day</option>
-                    <option value="7" selected>week</option>
-                </select>
-                <button type="button" class="remove-activity-btn" title="Remove">&times;</button>
-            </div>
+      <div class="activity-row">
+        <div class="row-controls">
+          <select class="act-direction">
+            <option value="1">Add</option>
+            <option value="-1">Remove</option>
+          </select>
+          <select class="act-type">
+            <option value="3">Light Walking</option>
+            <option value="4.3">Medium Walking</option>
+            <option value="5">Intense Walking</option>
+            <option value="8.3">Light Running</option>
+            <option value="12.8">Medium Running</option>
+            <option value="19">Intense Running</option>
+            <option value="6.8">Light Cycling</option>
+            <option value="8">Medium Cycling</option>
+            <option value="10">Intense Cycling</option>
+            <option value="8.0">Swimming</option>
+          </select>
+          <span>for</span>
+          <select class="act-duration">
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="15">15</option>
+            <option value="20">20</option>
+            <option value="25">25</option>
+            <option value="30" selected>30</option>
+            <option value="35">35</option>
+            <option value="40">40</option>
+            <option value="45">45</option>
+            <option value="60">60</option>
+            <option value="90">90</option>
+            <option value="120">120</option>
+          </select>
+          <span>mins,</span>
+          <select class="act-frequency">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3" selected>3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+          </select>
+          <span>times per</span>
+          <select class="act-period">
+            <option value="1">day</option>
+            <option value="7" selected>week</option>
+          </select>
+          <button type="button" class="remove-activity-btn" title="Remove">&times;</button>
         </div>
+      </div>
     </template>
 
     <footer class="main-footer">
-        <div class="container">
-            <p>&copy; 2026 Body Weight Planner | <a href="#" id="link-about">About</a></p>
-        </div>
+      <div class="container">
+        <p>&copy; 2026 Body Weight Planner | <a href="#" id="link-about">About</a></p>
+      </div>
     </footer>
 
     <dialog id="about-modal" class="modal">
-        <form method="dialog">
-            <h3>About the Body Weight Planner</h3>
-            <div class="about-content">
-                <p>The <a target="_blank" href="https://www.niddk.nih.gov/research-funding/at-niddk/labs-branches/laboratory-biological-modeling/integrative-physiology-section/research/body-weight-planner">research behind</a> the National Institutes of Health (NIH) Body Weight Planner is from work done by <a target="_blank" href="https://www.niddk.nih.gov/about-niddk/staff-directory/biography/hall-kevin">Dr. Kevin Hall's</a> research group to better understand how diet and exercise quantitatively contribute to weight loss and weight loss maintenance.</p>
-                <p>This implementation is a modernized rewrite of the original scientific tool. You can find the official version at <a target="_blank" href="https://www.niddk.nih.gov/bwp">niddk.nih.gov/bwp</a>.</p>
-                <p><em>Notice: This modern version was rewritten and optimized using Google Gemini.</em></p>
-                <hr>
-                <h4>Privacy & Data</h4>
-                <p>Your data is private. All information entered is stored <strong>only on your device</strong> using browser local storage. No data is transmitted to or stored on any external servers.</p>
-                <button type="button" id="btn-reset-all" class="action-btn danger small">Reset All Data & Settings</button>
-            </div>
-            <div class="modal-actions">
-                <button type="submit" class="btn-primary">Close</button>
-            </div>
-        </form>
+      <form method="dialog">
+        <h3>About the Body Weight Planner</h3>
+        <div class="about-content">
+          <p>
+            The
+            <a
+              target="_blank"
+              href="https://www.niddk.nih.gov/research-funding/at-niddk/labs-branches/laboratory-biological-modeling/integrative-physiology-section/research/body-weight-planner"
+              >research behind</a
+            >
+            the National Institutes of Health (NIH) Body Weight Planner is from work done by
+            <a
+              target="_blank"
+              href="https://www.niddk.nih.gov/about-niddk/staff-directory/biography/hall-kevin"
+              >Dr. Kevin Hall's</a
+            >
+            research group to better understand how diet and exercise quantitatively contribute to
+            weight loss and weight loss maintenance.
+          </p>
+          <p>
+            This implementation is a modernized rewrite of the original scientific tool. You can
+            find the official version at
+            <a target="_blank" href="https://www.niddk.nih.gov/bwp">niddk.nih.gov/bwp</a>.
+          </p>
+          <p>
+            <em>Notice: This modern version was rewritten and optimized using Google Gemini.</em>
+          </p>
+          <hr />
+          <h4>Privacy & Data</h4>
+          <p>
+            Your data is private. All information entered is stored
+            <strong>only on your device</strong> using browser local storage. No data is transmitted
+            to or stored on any external servers.
+          </p>
+          <button type="button" id="btn-reset-all" class="action-btn danger small">
+            Reset All Data & Settings
+          </button>
+        </div>
+        <div class="modal-actions">
+          <button type="submit" class="btn-primary">Close</button>
+        </div>
+      </form>
     </dialog>
 
     <script type="module" src="main.js"></script>
-</body>
+  </body>
 </html>

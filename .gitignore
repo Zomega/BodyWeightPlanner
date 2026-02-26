@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build/Output
+dist/
+build/
+
+# IDE/OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
