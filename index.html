@@ -6,37 +6,23 @@
     <title>Body Weight Planner</title>
     <link rel="icon" href="data:," />
     <link rel="stylesheet" href="css/bwp.css" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,400,0,0"
+    />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
   </head>
   <body>
     <header class="main-header">
-      <div class="container">
-        <h1>Body Weight Planner</h1>
-        <p>Modernized scientific tool for weight management</p>
-        <div class="header-controls">
-          <div class="unit-toggle-container">
-            <label class="toggle-label">System:</label>
-            <div class="toggle-group">
-              <button id="unit-metric" class="toggle-btn active">Metric (kg/cm)</button>
-              <button id="unit-us" class="toggle-btn">U.S. (lbs/ft)</button>
-            </div>
-          </div>
-          <div class="unit-toggle-container">
-            <label class="toggle-label">Energy:</label>
-            <div class="toggle-group">
-              <button id="unit-cals" class="toggle-btn active">Calories</button>
-              <button id="unit-kj" class="toggle-btn">Kilojoules</button>
-            </div>
-          </div>
-          <div class="unit-toggle-container">
-            <label class="toggle-label">Advanced Controls:</label>
-            <div class="toggle-group">
-              <button id="toggle-advanced-show" class="toggle-btn">Show</button>
-              <button id="toggle-advanced-hide" class="toggle-btn active">Hide</button>
-            </div>
-          </div>
+      <div class="container header-content">
+        <div class="title-area">
+          <h1>Body Weight Planner</h1>
+          <p>Modernized scientific tool for weight management</p>
         </div>
+        <button id="btn-settings" class="icon-btn" title="Settings">
+          <span class="material-symbols-outlined">settings</span>
+        </button>
       </div>
     </header>
 
@@ -275,12 +261,15 @@
 
     <dialog id="pal-modal" class="modal wide">
       <form method="dialog">
-        <div class="modal-header-toggle">
-          <h3>Estimate Physical Activity Level</h3>
-          <div class="toggle-group card-toggle" id="pal-mode-toggle">
-            <button type="button" class="toggle-btn active" data-mode="simple">Simple</button>
-            <button type="button" class="toggle-btn" data-mode="advanced">Advanced</button>
+        <div class="modal-header">
+          <div class="modal-header-toggle">
+            <h3>Estimate Physical Activity Level</h3>
+            <div class="toggle-group card-toggle" id="pal-mode-toggle">
+              <button type="button" class="toggle-btn active" data-mode="simple">Simple</button>
+              <button type="button" class="toggle-btn" data-mode="advanced">Advanced</button>
+            </div>
           </div>
+          <button type="button" class="close-modal-btn" title="Close">&times;</button>
         </div>
 
         <div id="pal-simple-container">
@@ -381,7 +370,10 @@
 
     <dialog id="pal-change-modal" class="modal wide">
       <form method="dialog">
-        <h3>Estimate Activity Change</h3>
+        <div class="modal-header">
+          <h3>Estimate Activity Change</h3>
+          <button type="button" class="close-modal-btn" title="Close">&times;</button>
+        </div>
         <p class="help-text">I will make the following changes to my physical activity:</p>
         <div id="activity-change-list" class="activity-change-stack">
           <!-- Activity rows will be added here -->
@@ -458,13 +450,16 @@
 
     <footer class="main-footer">
       <div class="container">
-        <p>&copy; 2026 Body Weight Planner | <a href="#" id="link-about">About</a></p>
+        <p><a href="#" id="link-about">About</a></p>
       </div>
     </footer>
 
     <dialog id="about-modal" class="modal">
       <form method="dialog">
-        <h3>About the Body Weight Planner</h3>
+        <div class="modal-header">
+          <h3>About the Body Weight Planner</h3>
+          <button type="button" class="close-modal-btn" title="Close">&times;</button>
+        </div>
         <div class="about-content">
           <p>
             The
@@ -490,9 +485,47 @@
           <p>
             <em>Notice: This modern version was rewritten and optimized using Google Gemini.</em>
           </p>
-          <hr />
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="settings-modal" class="modal">
+      <form method="dialog">
+        <div class="modal-header">
+          <h3>Application Settings</h3>
+          <button type="button" class="close-modal-btn" title="Close">&times;</button>
+        </div>
+
+        <div class="settings-section">
+          <h4>Preferences</h4>
+          <div class="unit-toggle-container modal-toggle-row">
+            <label class="toggle-label">System Units:</label>
+            <div class="toggle-group card-toggle">
+              <button type="button" id="unit-metric" class="toggle-btn active">Metric</button>
+              <button type="button" id="unit-us" class="toggle-btn">U.S.</button>
+            </div>
+          </div>
+          <div class="unit-toggle-container modal-toggle-row">
+            <label class="toggle-label">Energy Units:</label>
+            <div class="toggle-group card-toggle">
+              <button type="button" id="unit-cals" class="toggle-btn active">Calories</button>
+              <button type="button" id="unit-kj" class="toggle-btn">Kilojoules</button>
+            </div>
+          </div>
+          <div class="unit-toggle-container modal-toggle-row">
+            <label class="toggle-label">Advanced Controls:</label>
+            <div class="toggle-group card-toggle">
+              <button type="button" id="toggle-advanced-show" class="toggle-btn">Show</button>
+              <button type="button" id="toggle-advanced-hide" class="toggle-btn active">
+                Hide
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
           <h4>Privacy & Data</h4>
-          <p>
+          <p class="help-text">
             Your data is private. All information entered is stored
             <strong>only on your device</strong> using browser local storage. No data is transmitted
             to or stored on any external servers.
@@ -500,9 +533,6 @@
           <button type="button" id="btn-reset-all" class="action-btn danger small">
             Reset All Data & Settings
           </button>
-        </div>
-        <div class="modal-actions">
-          <button type="submit" class="btn-primary">Close</button>
         </div>
       </form>
     </dialog>

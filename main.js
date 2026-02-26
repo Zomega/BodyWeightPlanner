@@ -616,6 +616,18 @@ class App {
 
     document.getElementById('btn-export-csv')?.addEventListener('click', () => this.exportCSV());
 
+    document.getElementById('btn-settings')?.addEventListener('click', () => {
+      document.getElementById('settings-modal')?.showModal();
+    });
+
+    // Global listener for modal close buttons (using delegation)
+    document.addEventListener('click', (e) => {
+      const closeBtn = e.target.closest('.close-modal-btn');
+      if (closeBtn) {
+        closeBtn.closest('dialog')?.close();
+      }
+    });
+
     document.getElementById('btn-reset-all')?.addEventListener('click', () => {
       if (confirm('This will permanently delete all your saved data and settings. Are you sure?')) {
         this.resetAllData();
