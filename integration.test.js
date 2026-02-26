@@ -3,7 +3,7 @@ import assert from 'node:assert';
 import Baseline from './baseline.js';
 import Intervention from './intervention.js';
 
-test('Intervention.forgoal returns maintenance for same weight', (t) => {
+test('Intervention.forgoal returns maintenance for same weight', (_t) => {
   const b = new Baseline(true, 23, 180, 70, 18, 1708, 1.6);
   const maintCals = b.getMaintCals();
   const goalInter = Intervention.forgoal(b, 70, 100, 0, 0, 0.001);
@@ -12,7 +12,7 @@ test('Intervention.forgoal returns maintenance for same weight', (t) => {
   assert.ok(Math.abs(goalInter.calories - maintCals) < 1);
 });
 
-test('Intervention.forgoal calculates calories for weight loss', (t) => {
+test('Intervention.forgoal calculates calories for weight loss', (_t) => {
   const b = new Baseline(true, 23, 180, 70, 18, 1708, 1.6);
   // Lose 5kg in 180 days
   const goalInter = Intervention.forgoal(b, 65, 180, 0, 0, 0.001);
@@ -22,7 +22,7 @@ test('Intervention.forgoal calculates calories for weight loss', (t) => {
   assert.ok(goalInter.calories > 1500); // Sanity check
 });
 
-test('Unachievable goal throws error', (t) => {
+test('Unachievable goal throws error', (_t) => {
   const b = new Baseline(true, 23, 180, 70, 18, 1708, 1.6);
   // Lose 50kg in 10 days (impossible)
   assert.throws(() => {

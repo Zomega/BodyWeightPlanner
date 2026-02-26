@@ -17,10 +17,12 @@ export default [
         console: 'readonly',
         Blob: 'readonly',
         URL: 'readonly',
+        Chart: 'readonly',
+        confirm: 'readonly',
       },
     },
     rules: {
-      'no-unused-vars': 'warn',
+      'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       'no-console': 'off',
     },
   },

@@ -4,7 +4,7 @@ import Baseline from './baseline.js';
 import BodyModel from './bodymodel.js';
 import DailyParams from './dailyparams.js';
 
-test('BodyModel simulation - Weight loss stability', (t) => {
+test('BodyModel simulation - Weight loss stability', (_t) => {
   const b = new Baseline(true, 23, 180, 100, 30, 2000, 1.4);
   const startWeight = b.weight;
 
@@ -25,7 +25,7 @@ test('BodyModel simulation - Weight loss stability', (t) => {
   assert.ok(endWeight > 70); // Sanity check
 });
 
-test('BodyModel simulation - Maintenance stability', (t) => {
+test('BodyModel simulation - Maintenance stability', (_t) => {
   const b = new Baseline(true, 23, 180, 70, 18, 1708, 1.6);
   const startWeight = b.weight;
 

@@ -4,7 +4,7 @@ import Baseline from './baseline.js';
 import Intervention from './intervention.js';
 import DailyParams from './dailyparams.js';
 
-test('DailyParams trajectory - Single intervention no ramp', (t) => {
+test('DailyParams trajectory - Single intervention no ramp', (_t) => {
   const b = new Baseline(true, 23, 180, 70, 18, 1708, 1.6);
   const maint = b.getMaintCals();
 
@@ -23,7 +23,7 @@ test('DailyParams trajectory - Single intervention no ramp', (t) => {
   assert.strictEqual(traj[19].calories, 2000);
 });
 
-test('DailyParams trajectory - Single intervention WITH ramp', (t) => {
+test('DailyParams trajectory - Single intervention WITH ramp', (_t) => {
   const b = new Baseline(true, 23, 180, 70, 18, 1708, 1.6);
   const maint = b.getMaintCals(); // ~2746
 
@@ -40,7 +40,7 @@ test('DailyParams trajectory - Single intervention WITH ramp', (t) => {
   assert.strictEqual(traj[10].calories, 2000);
 });
 
-test('DailyParams trajectory - Multi-intervention sequence', (t) => {
+test('DailyParams trajectory - Multi-intervention sequence', (_t) => {
   const b = new Baseline(true, 23, 180, 70, 18, 1708, 1.6);
 
   const int1 = new Intervention(10, 2500, 50, 0, 4000);

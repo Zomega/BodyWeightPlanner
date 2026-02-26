@@ -3,6 +3,10 @@ import Intervention from './intervention.js';
 import BodyModel from './bodymodel.js';
 import DailyParams from './dailyparams.js';
 import { WorkActivityLevel, LeisureActivityLevel } from './constants.js';
+import { BMIUtils } from './bmi-utils.js';
+import { PALCalculator } from './pal-calculator.js';
+import { StorageService } from './storage-service.js';
+import { ExportService } from './export-service.js';
 
 // Polyfill from legacy appController.js
 if (!Math.IEEERemainder) {
@@ -21,7 +25,6 @@ class App {
     this.chartView = 'weight'; // 'weight' or 'fat'
     this.chart = null;
     this.simLengthTouched = false;
-    this.STORAGE_KEY = 'bwp_user_data';
     this.compendium = [];
     this.palMode = 'simple';
     this.init();
@@ -374,31 +377,20 @@ class App {
   }
 
   calculateAdvancedPal() {
+    const activities = [];
     const list = document.getElementById('pal-advanced-list');
     if (!list) return 1.6;
 
-    let totalMetHours = 0;
-    let totalActiveMinsPerDay = 0;
-
     Array.from(list.children).forEach((row) => {
-      const met = parseFloat(row.querySelector('.activity-select').value) || 1.0;
-      const duration = parseFloat(row.querySelector('.act-duration').value) || 0;
-      const freq = parseFloat(row.querySelector('.act-frequency').value) || 0;
-      const period = parseFloat(row.querySelector('.act-period').value) || 7;
-
-      // MET-minutes per day
-      const minsPerDay = (duration * freq) / period;
-      totalMetHours += (met * minsPerDay) / 60;
-      totalActiveMinsPerDay += minsPerDay;
+      activities.push({
+        met: row.querySelector('.activity-select').value,
+        duration: row.querySelector('.act-duration').value,
+        frequency: row.querySelector('.act-frequency').value,
+        period: row.querySelector('.act-period').value,
+      });
     });
 
-    // The remaining hours of the day are assumed to be at 1.0 MET (sleeping/resting)
-    const restHours = Math.max(0, 24 - totalActiveMinsPerDay / 60);
-    totalMetHours += restHours * 1.0;
-
-    // PAL is roughly average METs over 24 hours
-    const pal = totalMetHours / 24;
-    return Math.max(1.1, Math.min(3.0, pal));
+    return PALCalculator.calculateAdvanced(activities);
   }
 
   reindexPhases() {
@@ -648,7 +640,7 @@ class App {
       if (this.palMode === 'simple') {
         const work = document.getElementById('work-activity').value;
         const leisure = document.getElementById('leisure-activity').value;
-        document.getElementById('pal').value = this.getPalValue(leisure, work);
+        document.getElementById('pal').value = PALCalculator.getSimpleValue(leisure, work);
       } else {
         document.getElementById('pal').value = this.calculateAdvancedPal().toFixed(2);
       }
@@ -807,15 +799,13 @@ class App {
       rmrMode: document.getElementById('rmr-mode')?.value,
       phases: phases,
     };
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
+    StorageService.save(data);
   }
 
   loadFromLocalStorage() {
-    const raw = localStorage.getItem(this.STORAGE_KEY);
-    if (!raw) return;
+    const data = StorageService.load();
+    if (!data) return;
     try {
-      const data = JSON.parse(raw);
-
       if (data.isMetric !== undefined) {
         this.isMetric = data.isMetric;
         this.applyUnitUI();
@@ -864,12 +854,12 @@ class App {
         });
       }
     } catch (e) {
-      console.error('Error loading from localStorage', e);
+      console.error('Error loading from storage', e);
     }
   }
 
   resetAllData() {
-    localStorage.removeItem(this.STORAGE_KEY);
+    StorageService.clear();
     window.location.reload();
   }
 
@@ -926,32 +916,6 @@ class App {
         view === 'weight' ? `Weight (${this.isMetric ? 'kg' : 'lbs'})` : 'Body Fat %';
     }
     this.updateResults();
-  }
-
-  getPalValue(leisure, work) {
-    const map = {
-      'Very Light|Very Light': 1.4,
-      'Very Light|Light': 1.5,
-      'Very Light|Moderate': 1.6,
-      'Very Light|Heavy': 1.7,
-      'Light|Very Light': 1.5,
-      'Light|Light': 1.6,
-      'Light|Moderate': 1.7,
-      'Light|Heavy': 1.8,
-      'Moderate|Very Light': 1.6,
-      'Moderate|Light': 1.7,
-      'Moderate|Moderate': 1.8,
-      'Moderate|Heavy': 1.9,
-      'Active|Very Light': 1.7,
-      'Active|Light': 1.8,
-      'Active|Moderate': 1.9,
-      'Active|Heavy': 2.1,
-      'Very Active|Very Light': 1.9,
-      'Very Active|Light': 2.0,
-      'Very Active|Moderate': 2.2,
-      'Very Active|Heavy': 2.3,
-    };
-    return map[`${leisure}|${work}`] || 1.6;
   }
 
   setUnits(isMetric) {
@@ -1068,15 +1032,15 @@ class App {
       const maintRes = document.getElementById('maint-cals');
       if (maintRes) maintRes.textContent = Math.round(maintCals * (this.isCalories ? 1 : 4.184));
 
-      const bmi = this.baseline.getBMI();
-      const range = this.baseline.getHealthyWeightRange();
+      const bmi = BMIUtils.calculate(weight, height);
+      const range = BMIUtils.getHealthyRange(height);
       const bmiRes = document.getElementById('current-bmi');
       if (bmiRes) bmiRes.textContent = bmi.toFixed(1);
 
       const rangeRes = document.getElementById('healthy-range');
       if (rangeRes) {
         rangeRes.textContent = this.isMetric
-          ? `${range.low} - ${range.high}`
+          ? `${Math.round(range.low)} - ${Math.round(range.high)}`
           : `${Math.round(range.low * 2.20462)} - ${Math.round(range.high * 2.20462)}`;
       }
 
@@ -1126,7 +1090,7 @@ class App {
       if (goalCalsRes) goalCalsRes.textContent = Math.round(goalInt.calories * energyMult);
 
       const goalBC = BodyModel.projectFromBaselineViaIntervention(this.baseline, goalInt, goalDays);
-      const targetBmi = this.baseline.getNewBMI(goalWeight);
+      const targetBmi = BMIUtils.calculate(goalWeight, this.baseline.height);
       const targetBmiRes = document.getElementById('target-bmi');
       if (targetBmiRes) targetBmiRes.textContent = targetBmi.toFixed(1);
 
@@ -1246,10 +1210,7 @@ class App {
 
     const finalWeightKg =
       this.isMetric || this.chartView !== 'weight' ? finalVal : finalVal / 2.20462;
-    const finalBmi =
-      this.chartView === 'weight' && this.baseline.height > 0
-        ? finalWeightKg / Math.pow(this.baseline.height / 100, 2)
-        : 0;
+    const finalBmi = BMIUtils.calculate(finalWeightKg, this.baseline.height);
     const finalBmiRes = document.getElementById('final-bmi');
     if (finalBmiRes)
       finalBmiRes.textContent = this.chartView === 'weight' ? finalBmi.toFixed(1) : '-';
@@ -1292,7 +1253,7 @@ class App {
   getDetailedRow(day, model, baseline, params) {
     const weight = model.getWeight(baseline);
     const fatPercent = model.getFatPercent(baseline);
-    const bmi = model.getBMI(baseline);
+    const bmi = BMIUtils.calculate(weight, baseline.height);
     const value = this.chartView === 'weight' ? weight : fatPercent;
 
     return {
@@ -1309,43 +1270,7 @@ class App {
   }
 
   exportCSV() {
-    if (!this.lastResults) return;
-    const { trajectory, upperTraj, lowerTraj } = this.lastResults;
-
-    const wUnit = this.isMetric ? 'kg' : 'lbs';
-    const eUnit = this.isCalories ? 'cals' : 'kj';
-    const eMult = this.isCalories ? 1 : 4.184;
-
-    let csv = 'sep=,\r\n';
-    csv += `Day,Weight (${wUnit}),Upper Weight (${wUnit}),Lower Weight (${wUnit}),Body Fat %,BMI,Fat Mass (${wUnit}),Lean Mass (${wUnit}),Intake (${eUnit}),Expenditure (${eUnit})\r\n`;
-
-    trajectory.forEach((row, i) => {
-      const upper = upperTraj[i].weight;
-      const lower = lowerTraj[i].weight;
-      const mult = this.isMetric ? 1 : 2.20462;
-
-      csv +=
-        `${row.day},` +
-        `${(row.weight * mult).toFixed(2)},` +
-        `${(upper * mult).toFixed(2)},` +
-        `${(lower * mult).toFixed(2)},` +
-        `${row.fatPercent.toFixed(2)},` +
-        `${row.bmi.toFixed(2)},` +
-        `${(row.fat * mult).toFixed(2)},` +
-        `${(row.lean * mult).toFixed(2)},` +
-        `${Math.round(row.calories * eMult)},` +
-        `${Math.round(row.tee * eMult)}\r\n`;
-    });
-
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', 'BWS_Data.csv');
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    ExportService.downloadCSV(this.lastResults, this.isMetric, this.isCalories);
   }
 
   getModifiedBaseline(deltaE) {
@@ -1390,10 +1315,7 @@ class App {
   updateBMICategory(bmi) {
     const el = document.getElementById('bmi-category');
     if (!el) return;
-    if (bmi < 18.5) el.textContent = 'Underweight';
-    else if (bmi < 25) el.textContent = 'Normal';
-    else if (bmi < 30) el.textContent = 'Overweight';
-    else el.textContent = 'Obese';
+    el.textContent = BMIUtils.getCategory(bmi);
   }
 
   checkBMIAlert(bmi, range) {
@@ -1405,7 +1327,9 @@ class App {
       const unit = this.isMetric ? 'kg' : 'lbs';
       const low = this.isMetric ? range.low : Math.round(range.low * 2.20462);
       const high = this.isMetric ? range.high : Math.round(range.high * 2.20462);
-      alert.textContent = `BMI outside healthy range (${low}-${high} ${unit}).`;
+      alert.textContent = `BMI outside healthy range (${Math.round(low)}-${Math.round(
+        high
+      )} ${unit}).`;
     } else {
       alert.classList.add('hidden');
     }

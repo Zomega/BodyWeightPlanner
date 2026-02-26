@@ -42,13 +42,10 @@ export default class Intervention {
 
       let checkcals = mincals;
       let calstep = 200.0;
-      let holdcals = 0.0;
-      let i = 0;
       let PCXerror = 0;
 
       do {
-        i++;
-        holdcals = checkcals;
+        const holdcals = checkcals;
         checkcals += calstep;
         goalinter.calories = checkcals;
         goalinter.setproportionalsodium(baseline);
