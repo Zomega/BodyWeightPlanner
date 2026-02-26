@@ -648,6 +648,27 @@ class App {
         this.saveToLocalStorage();
     }
 
+    setEnergyUnits(isCalories) {
+        if (this.isCalories === isCalories) return;
+        const oldIsCalories = this.isCalories;
+        this.isCalories = isCalories;
+        
+        const list = document.getElementById('intervention-list');
+        if (list) {
+            Array.from(list.children).forEach(box => {
+                const calsEl = box.querySelector('.phase-cals');
+                if (calsEl && calsEl.value) {
+                    const currentVal = parseFloat(calsEl.value);
+                    calsEl.value = Math.round(oldIsCalories ? currentVal * 4.184 : currentVal / 4.184);
+                }
+            });
+        }
+
+        this.applyEnergyUnitUI();
+        this.updateResults();
+        this.saveToLocalStorage();
+    }
+
     getWeightKg() {
         const val = parseFloat(document.getElementById('weight')?.value) || 0;
         return this.isMetric ? val : val / 2.20462;
