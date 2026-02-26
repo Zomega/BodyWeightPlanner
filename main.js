@@ -608,6 +608,7 @@ class App {
       .getElementById('chart-weight')
       ?.addEventListener('click', () => this.setChartView('weight'));
     document.getElementById('chart-fat')?.addEventListener('click', () => this.setChartView('fat'));
+    document.getElementById('chart-bmi')?.addEventListener('click', () => this.setChartView('bmi'));
 
     document.getElementById('link-about')?.addEventListener('click', (e) => {
       e.preventDefault();
@@ -898,8 +899,10 @@ class App {
       .querySelectorAll('.unit-weight')
       .forEach((el) => (el.textContent = this.isMetric ? 'kg' : 'lbs'));
     if (this.chart) {
-      this.chart.options.scales.y.title.text =
-        this.chartView === 'weight' ? `Weight (${this.isMetric ? 'kg' : 'lbs'})` : 'Body Fat %';
+      let yTitle = 'Body Fat %';
+      if (this.chartView === 'weight') yTitle = `Weight (${this.isMetric ? 'kg' : 'lbs'})`;
+      if (this.chartView === 'bmi') yTitle = 'BMI';
+      this.chart.options.scales.y.title.text = yTitle;
     }
   }
 
@@ -923,9 +926,12 @@ class App {
     this.chartView = view;
     document.getElementById('chart-weight')?.classList.toggle('active', view === 'weight');
     document.getElementById('chart-fat')?.classList.toggle('active', view === 'fat');
+    document.getElementById('chart-bmi')?.classList.toggle('active', view === 'bmi');
     if (this.chart) {
-      this.chart.options.scales.y.title.text =
-        view === 'weight' ? `Weight (${this.isMetric ? 'kg' : 'lbs'})` : 'Body Fat %';
+      let yTitle = 'Body Fat %';
+      if (view === 'weight') yTitle = `Weight (${this.isMetric ? 'kg' : 'lbs'})`;
+      if (view === 'bmi') yTitle = 'BMI';
+      this.chart.options.scales.y.title.text = yTitle;
     }
     this.updateResults();
   }
@@ -1266,7 +1272,9 @@ class App {
     const weight = model.getWeight(baseline);
     const fatPercent = model.getFatPercent(baseline);
     const bmi = BMIUtils.calculate(weight, baseline.height);
-    const value = this.chartView === 'weight' ? weight : fatPercent;
+    let value = fatPercent;
+    if (this.chartView === 'weight') value = weight;
+    if (this.chartView === 'bmi') value = bmi;
 
     return {
       day,
