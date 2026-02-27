@@ -34,7 +34,40 @@ test('Intervention.setproportionalsodium', () => {
 
 test('Intervention.forgoal edge cases', () => {
     const b = new Baseline(true, 23, 180, 70);
-    // Title check
-    const goal = Intervention.forgoal(b, 65, 180, 0, 0, 0.001);
-    assert.strictEqual(goal.title, 'Goal Intervention');
+    const maint = b.getMaintCals();
+    
+    // Case: weight matches AND actchange is 0
+    const goalSame = Intervention.forgoal(b, 70, 100, 0, 0, 0.001);
+    assert.strictEqual(goalSame.calories, maint);
+    assert.strictEqual(goalSame.title, 'Goal Intervention');
+
+    // Case: weight matches BUT actchange is NOT 0
+    // If activity increases, we need MORE calories to maintain weight
+    const goalSameAct = Intervention.forgoal(b, 70, 100, 10, 0, 0.001);
+    assert.ok(goalSameAct.calories > maint);
+});
+
+test('Intervention.forgoal search logic precision', () => {
+    const b = new Baseline(true, 23, 180, 70, 18, 1716, 1.4, false, false);
+    const maint = b.getMaintCals();
+    const eps = 0.0001;
+    
+    // Test goal above starting weight
+    const goalGain = Intervention.forgoal(b, 75, 100, 0, 0, eps);
+    assert.ok(goalGain.calories > maint, 'Gain requires surplus');
+    
+    // Test that eps is actually respected
+    const starv = BodyModel.projectFromBaselineViaIntervention(b, goalGain, 100);
+    assert.ok(Math.abs(starv.getWeight(b) - 75) <= eps, 'Should reach goal within epsilon');
+});
+
+test('Intervention.forgoal unachievable starvation', () => {
+    const b = new Baseline(true, 23, 180, 70, 18, 1716, 1.4, false, false);
+    // If goal weight is already reached but we set mincals very high
+    // Actually, starvation check is: if (error < eps || goalwt <= starvwt)
+    // where starvwt is weight after goaltime at MINCALS.
+    // If goalwt is 100kg but maintenance only gets us to 80kg in 10 days, error logic applies.
+    assert.throws(() => {
+        Intervention.forgoal(b, 10, 1, 0, 2000, 0.001); // Can't drop to 10kg in 1 day with 2000 cals
+    }, /Unachievable Goal/);
 });

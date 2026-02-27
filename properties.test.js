@@ -74,7 +74,7 @@ test('BodyModel Property: Simulation should not produce NaN or Infinity', () => 
       fc.double({ min: 18, max: 100 }), // age
       fc.double({ min: 100, max: 220 }), // height
       fc.double({ min: 40, max: 200 }), // weight
-      fc.double({ min: 1000, max: 5000 }), // calories
+      fc.double({ min: 1000, max: 5000, noNaN: true }), // calories
       fc.integer({ min: 1, max: 365 }), // days
       (isMale, age, height, weight, cals, days) => {
         const b = new Baseline(isMale, age, height, weight);

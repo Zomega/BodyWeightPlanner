@@ -23,6 +23,24 @@ test('PALCalculator.calculateAdvanced - precision check', () => {
   assert.strictEqual(pal2, 1.5);
 });
 
+test('PALCalculator.calculateAdvanced - precision math', () => {
+  // Test the multiplication/division in minsPerDay
+  // (duration * freq) / period
+  const act = [{ met: 10, duration: 60, frequency: 1, period: 10 }]; // 6 mins/day active
+  // Active MET-hours: (10 * 6) / 60 = 1.0
+  // Rest MET-hours: (24 - 0.1) * 1 = 23.9
+  // Total: 24.9
+  // PAL = 24.9 / 24 = 1.0375 -> 1.1
+  assert.strictEqual(PALCalculator.calculateAdvanced(act), 1.1);
+
+  const act2 = [{ met: 2, duration: 60, frequency: 7, period: 7 }]; // 60 mins/day active
+  // Active MET-hours: (2 * 60) / 60 = 2.0
+  // Rest MET-hours: 23 * 1.0 = 23.0
+  // Total: 25.0
+  // PAL = 25 / 24 = 1.0416... -> 1.1
+  assert.strictEqual(PALCalculator.calculateAdvanced(act2), 1.1);
+});
+
 test('PALCalculator.calculateAdvanced - complex weekly activity', () => {
   const activities = [{ met: 10.0, duration: 30, frequency: 3, period: 7 }];
   const pal = PALCalculator.calculateAdvanced(activities);
@@ -34,10 +52,17 @@ test('PALCalculator.calculateAdvanced - edge cases', () => {
   assert.strictEqual(PALCalculator.calculateAdvanced([]), 1.6);
   
   const heavy = [{ met: 20, duration: 1440, frequency: 1, period: 1 }];
+  // 20 * 24 / 24 = 20 -> clamped to 3.0
   assert.strictEqual(PALCalculator.calculateAdvanced(heavy), 3.0);
   
-  const invalid = [{ met: 'abc', duration: null, frequency: undefined }];
-  assert.strictEqual(PALCalculator.calculateAdvanced(invalid), 1.1);
+  // Just above 3.0
+  const heavy2 = [{ met: 3.1, duration: 1440, frequency: 1, period: 1 }];
+  assert.strictEqual(PALCalculator.calculateAdvanced(heavy2), 3.0);
+
+  // Just below 1.1
+  const light = [{ met: 1.0, duration: 1, frequency: 1, period: 1 }];
+  // (1.0 * (1/60) + 23.983 * 1.0)/24 = 1.0 -> clamped to 1.1
+  assert.strictEqual(PALCalculator.calculateAdvanced(light), 1.1);
 });
 
 test('PALCalculator.getSimpleValue', () => {

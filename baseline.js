@@ -33,20 +33,29 @@ export default class Baseline {
     this.bfpCalc = bfpCalc;
     this.rmrCalc = rmrCalc;
 
-    this.age = parseFloat(age) || this.INITIAL_AGE;
+    const safeNum = (val, def) => {
+        try {
+            const n = parseFloat(val);
+            return isNaN(n) ? def : n;
+        } catch (e) {
+            return def;
+        }
+    };
+
+    this.age = safeNum(age, this.INITIAL_AGE);
     this.maximumage = this.MAX_AGE;
 
-    const h = parseFloat(height) || this.INITIAL_HEIGHT;
+    const h = safeNum(height, this.INITIAL_HEIGHT);
     this.height = Math.max(this.MIN_HEIGHT, Math.min(this.MAX_HEIGHT, h));
     
-    const w = parseFloat(weight) || this.INITIAL_WEIGHT;
+    const w = safeNum(weight, this.INITIAL_WEIGHT);
     this.weight = Math.max(this.MIN_WEIGHT, w);
     
-    const b = parseFloat(bfp) || this.INITIAL_BFP;
+    const b = safeNum(bfp, this.INITIAL_BFP);
     this.bfp = Math.max(this.MIN_BFP, Math.min(this.MAX_BFP, b));
     
-    this.rmr = parseFloat(rmr) || this.INITIAL_RMR;
-    this.pal = Math.max(this.MIN_PAL, parseFloat(pal) || this.INITIAL_PAL);
+    this.rmr = safeNum(rmr, this.INITIAL_RMR);
+    this.pal = Math.max(this.MIN_PAL, safeNum(pal, this.INITIAL_PAL));
 
     this.carbIntakePct = this.INITIAL_CARB_INTAKE_PCT;
     this.sodium = this.INITIAL_SODIUM;

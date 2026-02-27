@@ -6,6 +6,7 @@ package-lock.json
 dist/
 build/
 reports/
+.stryker-tmp/
 
 # IDE/OS
 .vscode/

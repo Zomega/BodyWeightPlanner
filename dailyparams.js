@@ -62,16 +62,7 @@ export default class DailyParams {
       const nextInt = activeInterventions.find((int) => int.day === i);
 
       if (nextInt) {
-        const targetParams = DailyParams.createFromIntervention(nextInt, baseline);
-
-        if (nextInt.rampon && i > 0) {
-          // Ramp from whatever the state was at the start of this intervention
-          // Note: Simplification - ramp logic usually happens BETWEEN intervention start dates.
-          // To match original spirit: if ramp is on, we interpolate from last state to this one.
-          // But usually, ramp means "ramp UP TO this day".
-          // Let's implement: interpolate from last state to target state over the duration.
-        }
-        currentParams = targetParams;
+        currentParams = DailyParams.createFromIntervention(nextInt, baseline);
         lastCalories = currentParams.calories;
         lastAct = currentParams.actparam;
         lastCarb = currentParams.carbpercent;
@@ -81,10 +72,15 @@ export default class DailyParams {
 
       // Check if we are currently in a ramp period for the 'next' upcoming intervention
       const upcoming = activeInterventions.find((int) => int.day > i && int.rampon);
-      if (upcoming) {
+      
+      // We only ramp if there was a previous point to ramp FROM
+      if (upcoming && i >= lastDay) {
         const startDay = lastDay;
         const endDay = upcoming.day;
-        const progress = (i - startDay) / (endDay - startDay);
+        const duration = endDay - startDay;
+        
+        // If duration is 0 (shouldn't happen with day > i), progress is 1
+        const progress = duration > 0 ? (i - startDay) / duration : 1.0;
 
         const targetCals = upcoming.calories;
         const targetAct = upcoming.getAct(baseline);
@@ -97,7 +93,7 @@ export default class DailyParams {
         const dsodium = lastSodium + progress * (targetSodium - lastSodium);
 
         const rampedParams = new DailyParams(dcal, dcarb, dsodium, dact);
-        rampedParams.ramped = true;
+        rampedParams.ramped = i > lastDay; // It's only 'ramping' if we are past the start day
         paramtraj.push(rampedParams);
       } else {
         paramtraj.push(currentParams);

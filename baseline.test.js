@@ -8,6 +8,10 @@ test('Baseline RMR calculation (Male)', (_t) => {
   const b = new Baseline(true, 23, 180, 70);
   const rmr = b.getRMR();
   assert.strictEqual(Math.round(rmr), 1716);
+  // Specifically verify the +5 constant vs -161
+  const b2 = new Baseline(true, 23, 180, 70, 18, 1716, 1.6, false, false);
+  b2.rmrCalc = true;
+  assert.strictEqual(b2.getRMR().toFixed(2), '1716.14');
 });
 
 test('Baseline RMR calculation (Female)', (_t) => {
@@ -16,6 +20,7 @@ test('Baseline RMR calculation (Female)', (_t) => {
   const b = new Baseline(false, 23, 180, 70);
   const rmr = b.getRMR();
   assert.strictEqual(Math.round(rmr), 1550);
+  assert.strictEqual(rmr.toFixed(2), '1550.14');
 });
 
 test('getNewRMR (Male and Female)', (_t) => {
@@ -47,6 +52,11 @@ test('Baseline Maintenance and Expenditure', (_t) => {
   assert.strictEqual(Math.round(b.getMaintCals()), 2746);
   // Activity Expenditure = TEE - RMR = 2745.824 - 1716.14 = 1029.684
   assert.strictEqual(Math.round(b.getActivityExpenditure()), 1030);
+
+  // getActivityParam: (0.9 * RMR * PAL - RMR) / weight
+  // (0.9 * 1716.14 * 1.6 - 1716.14) / 70
+  // (2471.2416 - 1716.14) / 70 = 755.1016 / 70 = 10.787...
+  assert.strictEqual(b.getActivityParam().toFixed(4), '10.7872');
 });
 
 test('Baseline Healthy Weight Range', (_t) => {
@@ -103,6 +113,11 @@ test('Weight metrics (Fat/Lean)', (_t) => {
   b.bfp = 30;
   assert.strictEqual(b.getFatWeight(), 30);
   assert.strictEqual(b.getLeanWeight(), 70);
+
+  // Check the division by 100 logic explicitly
+  const bSmall = new Baseline(true, 23, 180, 1, 50, 1716, 1.6, false, false);
+  // (1 * 50) / 100 = 0.5
+  assert.strictEqual(bSmall.getFatWeight(), 0.5);
 });
 
 test('Baseline default isMale', () => {
