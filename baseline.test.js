@@ -154,8 +154,38 @@ test('Baseline physics and composition', (_t) => {
 
 test('Steady state / stability equations', (_t) => {
     const b = new Baseline(true, 23, 180, 70);
+    // sodium = 4000, maintCals = 2745.824, carbPct = 50, carbsIn = 1372.912
+    // glycogen = 0.5
+    // glycogenEquation(2000): 0.5 * sqrt((0.5 * 2000) / 1372.912) = 0.5 * sqrt(1000 / 1372.912) = 0.5 * 0.8534 = 0.4267
+    assert.strictEqual(b.glycogenEquation(2000).toFixed(4), '0.4267');
+    
+    // deltaECWEquation(2000):
+    // ((4000 / 2745.824 + (4000 * 50) / (100 * 1372.912)) * 2000 - (4000 + 4000)) / 3000
+    // ((1.45676 + 200000 / 137291.2) * 2000 - 8000) / 3000
+    // ((1.45676 + 1.45676) * 2000 - 8000) / 3000
+    // (2.9135 * 2000 - 8000) / 3000 = (5827.0 - 8000) / 3000 = -2173 / 3000 = -0.7243
+    assert.strictEqual(b.deltaECWEquation(2000).toFixed(4), '-0.7243');
+
     const ssWeight = b.getStableWeight(10, 50, 2000);
-    assert.ok(ssWeight > 0);
+    // fat=10, lean=50, glycogen=0.4267, deltaECW=-0.7243
+    // newWeight = 10 + 50 + 3.7 * (0.4267 - 0.5) - 0.7243
+    // 60 + 3.7 * (-0.0733) - 0.7243 = 60 - 0.2712 - 0.7243 = 59.0045
+    assert.strictEqual(ssWeight.toFixed(4), '59.0046');
+});
+
+test('getK precision', (_t) => {
+    const b = new Baseline(true, 23, 180, 70, 18, 1716.14, 1.6);
+    // K = 0.76 * 2745.824 - 0 - 22 * 57.4 - 3.2 * 12.6 - 10.7872 * 70
+    assert.strictEqual(b.getK().toFixed(3), '-24.947');
+});
+
+test('Calculated flags false branch', (_t) => {
+    const b = new Baseline(true, 23, 180, 70, 18, 1716, 1.6, false, false);
+    // When false, getBFP and getRMR should just return the values they hold without recalculating
+    b.bfp = 25;
+    b.rmr = 2000;
+    assert.strictEqual(b.getBFP(), 25);
+    assert.strictEqual(b.getRMR(), 2000);
 });
 
 test('getNewAct', (_t) => {
