@@ -1,4 +1,6 @@
 import DailyParams from './dailyparams.js';
+import { Hall } from './constants.js';
+import * as Physiology from './physiology.js';
 
 export class BodyChange {
   constructor(df = 0, dl = 0, dg = 0, dDecw = 0, dtherm = 0) {
@@ -91,19 +93,20 @@ export default class BodyModel {
     const calin = dailyParams.calories;
     const carbflux = this.carbflux(baseline, dailyParams);
     const Expend = this.getExpend(baseline, dailyParams);
-    return (
-      (Expend + (calin - carbflux) * (((1.0 - p) * 180.0) / 9440.0 + (p * 230.0) / 1807.0)) /
-      (1.0 + (p * 230.0) / 1807.0 + ((1.0 - p) * 180.0) / 9440.0)
-    );
+    
+    const p_n = ((1.0 - p) * Hall.THERMIC_EFFECT_CARBS) / Hall.ENERGY_DENSITY_FAT + (p * Hall.THERMIC_EFFECT_PROTEIN) / Hall.ENERGY_DENSITY_LEAN;
+    const p_d = 1.0 + (p * Hall.THERMIC_EFFECT_PROTEIN) / Hall.ENERGY_DENSITY_LEAN + ((1.0 - p) * Hall.THERMIC_EFFECT_CARBS) / Hall.ENERGY_DENSITY_FAT;
+    
+    return (Expend + (calin - carbflux) * p_n) / p_d;
   }
 
   getExpend(baseline, dailyParams) {
-    const TEF = 0.1 * dailyParams.calories;
+    const TEF = Hall.THERMIC_EFFECT_FOOD * dailyParams.calories;
     const weight = baseline.getNewWeightFromBodyModel(this);
     return (
       baseline.getK() +
-      22.0 * this.lean +
-      3.2 * this.fat +
+      Hall.LEAN_METABOLIC_RATE * this.lean +
+      Hall.FAT_METABOLIC_RATE * this.fat +
       dailyParams.actparam * weight +
       this.therm +
       TEF
@@ -111,7 +114,7 @@ export default class BodyModel {
   }
 
   getp() {
-    return 1.990762711864407 / (1.990762711864407 + this.fat);
+    return Physiology.calculateForbesP(this.fat);
   }
 
   carbflux(baseline, dailyParams) {
@@ -123,8 +126,8 @@ export default class BodyModel {
     return (
       dailyParams.sodium -
       baseline.sodium -
-      3000.0 * this.decw -
-      4000.0 * (1.0 - dailyParams.getCarbIntake() / baseline.getCarbsIn())
+      Hall.SODIUM_WATER_COEFF * this.decw -
+      Hall.SODIUM_CARB_COEFF * (1.0 - dailyParams.getCarbIntake() / baseline.getCarbsIn())
     );
   }
 
@@ -134,7 +137,7 @@ export default class BodyModel {
         (dailyParams.calories -
           this.getTEE(baseline, dailyParams) -
           this.carbflux(baseline, dailyParams))) /
-      9440.0
+      Hall.ENERGY_DENSITY_FAT
     );
   }
 
@@ -144,20 +147,20 @@ export default class BodyModel {
         (dailyParams.calories -
           this.getTEE(baseline, dailyParams) -
           this.carbflux(baseline, dailyParams))) /
-      1807.0
+      Hall.ENERGY_DENSITY_LEAN
     );
   }
 
   dgdt(baseline, dailyParams) {
-    return this.carbflux(baseline, dailyParams) / 4180.0;
+    return this.carbflux(baseline, dailyParams) / Hall.ENERGY_DENSITY_GLYCOGEN;
   }
 
   dDecwdt(baseline, dailyParams) {
-    return this.Na_imbal(baseline, dailyParams) / 3220.0;
+    return this.Na_imbal(baseline, dailyParams) / Hall.ECW_SODIUM_CONC;
   }
 
   dthermdt(baseline, dailyParams) {
-    return (0.14 * dailyParams.calories - this.therm) / 14.0;
+    return (Hall.THERM_COEFF * dailyParams.calories - this.therm) / Hall.THERM_TIME_CONSTANT;
   }
 
   addchange(bchange, tstep) {
@@ -172,11 +175,11 @@ export default class BodyModel {
 
   cals4balance(baseline, act) {
     const weight = this.getWeight(baseline);
-    const Expend_no_food = baseline.getK() + 22.0 * this.lean + 3.2 * this.fat + act * weight;
+    const Expend_no_food = baseline.getK() + Hall.LEAN_METABOLIC_RATE * this.lean + Hall.FAT_METABOLIC_RATE * this.fat + act * weight;
     const p = this.getp();
-    const p_d = 1.0 + (p * 230.0) / 1807.0 + ((1.0 - p) * 180.0) / 9440.0;
-    const p_n = ((1.0 - p) * 180.0) / 9440.0 + (p * 230.0) / 1807.0;
-    return Expend_no_food / (p_d - p_n - 0.24);
+    const p_d = 1.0 + (p * Hall.THERMIC_EFFECT_PROTEIN) / Hall.ENERGY_DENSITY_LEAN + ((1.0 - p) * Hall.THERMIC_EFFECT_CARBS) / Hall.ENERGY_DENSITY_FAT;
+    const p_n = ((1.0 - p) * Hall.THERMIC_EFFECT_CARBS) / Hall.ENERGY_DENSITY_FAT + (p * Hall.THERMIC_EFFECT_PROTEIN) / Hall.ENERGY_DENSITY_LEAN;
+    return Expend_no_food / (p_d - p_n - Hall.CALS_BALANCE_EFF);
   }
 
   avgdt_weighted(wt, bchange) {

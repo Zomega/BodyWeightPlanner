@@ -1,3 +1,5 @@
+import { Hall, Limits, Defaults } from './constants.js';
+
 /**
  * Logic for calculating Physical Activity Level (PAL) based on MET-hours.
  */
@@ -8,7 +10,7 @@ export const PALCalculator = {
    * @returns {number} Calculated PAL (multiplier)
    */
   calculateAdvanced(activities) {
-    if (!activities || activities.length === 0) return 1.6;
+    if (!activities || activities.length === 0) return Defaults.PAL;
 
     let totalMetHours = 0;
     let totalActiveMinsPerDay = 0;
@@ -21,17 +23,17 @@ export const PALCalculator = {
 
       // MET-minutes per day
       const minsPerDay = (duration * freq) / period;
-      totalMetHours += (met * minsPerDay) / 60;
+      totalMetHours += (met * minsPerDay) / Hall.MINS_PER_HOUR;
       totalActiveMinsPerDay += minsPerDay;
     });
 
     // The remaining hours of the day are assumed to be at 1.0 MET (sleeping/resting)
-    const restHours = Math.max(0, 24 - totalActiveMinsPerDay / 60);
+    const restHours = Math.max(0, Hall.HOURS_PER_DAY - totalActiveMinsPerDay / Hall.MINS_PER_HOUR);
     totalMetHours += restHours * 1.0;
 
     // PAL is average METs over 24 hours
-    const pal = totalMetHours / 24;
-    return Math.max(1.1, Math.min(3.0, pal));
+    const pal = totalMetHours / Hall.HOURS_PER_DAY;
+    return Math.max(Limits.MIN_PAL_ADVANCED, Math.min(Limits.MAX_PAL_ADVANCED, pal));
   },
 
   /**
@@ -60,6 +62,6 @@ export const PALCalculator = {
       'Very Active|Moderate': 2.2,
       'Very Active|Heavy': 2.3,
     };
-    return map[`${leisure}|${work}`] || 1.6;
+    return map[`${leisure}|${work}`] || Defaults.PAL;
   },
 };

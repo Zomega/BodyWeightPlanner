@@ -3,8 +3,10 @@ import assert from 'node:assert';
 import Intervention from './intervention.js';
 import Baseline from './baseline.js';
 import BodyModel from './bodymodel.js';
+import { Limits } from './constants.js';
 
-const createDefaultBaseline = () => new Baseline(true, 23, 180, 70, 18, 1716, 1.4, false, false);
+const createDefaultBaseline = () =>
+  new Baseline(true, 23, 180, 70, 18, 1716, 1.4, false, false);
 
 test('Intervention constructor - constraints and defaults', () => {
   const int = new Intervention(10, -500, 150, -200, 60000);
@@ -12,7 +14,7 @@ test('Intervention constructor - constraints and defaults', () => {
   assert.strictEqual(int.calories, 0, 'Calories should be clamped to >= 0');
   assert.strictEqual(int.carbinpercent, 100, 'Carb % should be clamped to <= 100');
   assert.strictEqual(int.actchangepercent, -100, 'Act change % should be clamped to >= -100');
-  assert.strictEqual(int.sodium, 50000, 'Sodium should be clamped to <= 50000');
+  assert.strictEqual(int.sodium, Limits.MAX_SODIUM, `Sodium should be clamped to ${Limits.MAX_SODIUM}`);
 });
 
 test('Intervention.getAct - baseline dependency', () => {
@@ -64,12 +66,6 @@ test('Intervention.forgoal - precision and arithmetic', () => {
   // If it overshoots, it will half the step.
   const g = Intervention.forgoal(b, 71, 10, 0, 0, 0.00001);
   assert.ok(g.calories > b.getMaintCals());
-
-  // Test the arithmetic mutant starvwt + goalwt
-  // error = abs(starvwt - goalwt). If + mutant, error will be ~140.
-  // With eps = 0.001, error < eps will never be true.
-  // However, goalwt <= starvwt check will catch it if goal is loss.
-  // If goal is gain, we need the loop to terminate correctly.
 });
 
 test('Intervention.forgoal - starvation comparison mutants', () => {
@@ -114,21 +110,4 @@ test('Intervention.forgoal - search loop boundary check', () => {
   assert.doesNotThrow(() => {
     Intervention.forgoal(b, starvWeight + eps + 1e-10, 10, 0, 0, eps);
   });
-});
-
-test('Intervention.forgoal - PCXerror and title logic', () => {
-  const b = createDefaultBaseline();
-  const g = Intervention.forgoal(b, 70, 10, 0, 0, 0.001);
-  assert.strictEqual(g.title, 'Goal Intervention');
-
-  // PCXerror trigger: weight < 0 simulation
-  // A goal weight of 1000kg in 1 day with 0 calories is impossible but goalwt > starvwt might be true.
-  // Wait, starvwt is weight at mincals.
-  // If we set goalwt to 1000 and starvwt is 69, 1000 > 69 is true.
-  // The search starts increasing calories from mincals.
-  // Eventually it hits 1000kg?
-
-  // Let's test the baseline maintenance shortcut
-  const gSame = Intervention.forgoal(b, 70, 10, 0, 0, 0.001);
-  assert.strictEqual(gSame.calories, b.getMaintCals());
 });

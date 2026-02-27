@@ -3,6 +3,8 @@ import assert from 'node:assert';
 import Baseline from './baseline.js';
 import BodyModel, { BodyChange } from './bodymodel.js';
 import DailyParams from './dailyparams.js';
+import * as Physiology from './physiology.js';
+import { Hall } from './constants.js';
 
 const createSimBaseline = () => new Baseline(true, 23, 180, 100, 30, 2000, 1.4);
 
@@ -90,14 +92,27 @@ test('BodyModel - physics operator verification', () => {
   const model = BodyModel.createFromBaseline(b);
   const params = new DailyParams(2000, 50, 4000, 10);
 
-  // Na_imbal: sodium - baseline.sodium - 3000 * decw - 4000 * (1 - carbRatio)
-  // 4000 - 4000 - 3000 * 0 - 4000 * (1 - 1000 / 1373) = 0 - 0 - 4000 * (0.271) = -1084
+  // Na_imbal: sodium - baseline.sodium - Hall.SODIUM_WATER_COEFF * decw - Hall.SODIUM_CARB_COEFF * (1 - carbRatio)
   assert.ok(model.Na_imbal(b, params) < 0);
 
   // dfdt and dldt: check they use the same base (cals - TEE - carbflux)
   const df = model.dfdt(b, params);
   const dl = model.dldt(b, params);
   assert.ok(df < 0 && dl < 0, 'Deficit should lead to fat and lean loss');
+
+  // Verify K factor default param (deltaE)
+  const kDefault = Physiology.calculateKFactor(2500, 60, 10, 10, 70);
+  assert.ok(!isNaN(kDefault));
+
+  // Verify RMR clamping
+  const lowRMR = Physiology.calculateRMR(1, 1, 100, true);
+  assert.strictEqual(lowRMR, 500);
+
+  // Verify BFP clamping
+  const lowBFP = Physiology.calculateBFP(1, 100, true);
+  assert.strictEqual(lowBFP, 0);
+  const highBFP = Physiology.calculateBFP(100, 20, false);
+  assert.strictEqual(highBFP, 60);
 });
 
 test('BodyModel - avgdt_weighted array mutants', () => {
@@ -130,4 +145,10 @@ test('BodyModel - avgdt_weighted logical boundaries', (_t) => {
   // Negative weight should be treated as 1
   const negAvg = model.avgdt_weighted([-10], [change1]);
   assert.strictEqual(negAvg.df, 1);
+});
+
+test('BodyModel - RK4 weights invariant', () => {
+  const model = new BodyModel();
+  const weightSum = model.RK4wt.reduce((a, b) => a + b, 0);
+  assert.strictEqual(weightSum, 6, 'RK4 weights [1,2,2,1] must sum to 6');
 });

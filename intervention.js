@@ -1,4 +1,5 @@
 import BodyModel from './bodymodel.js';
+import { Limits, Solver as SolverConst } from './constants.js';
 
 export default class Intervention {
   constructor(
@@ -10,7 +11,7 @@ export default class Intervention {
   ) {
     this.calories = Math.max(0, calories);
     this.carbinpercent = Math.max(0, Math.min(100.0, carbinpercent));
-    this.sodium = Math.max(0, Math.min(50000.0, sodium));
+    this.sodium = Math.max(0, Math.min(Limits.MAX_SODIUM, sodium));
     this.on = true;
     this.rampon = false;
     this.actchangepercent = Math.max(-100.0, actchangepercent);
@@ -41,7 +42,7 @@ export default class Intervention {
       }
 
       let checkcals = mincals;
-      let calstep = 200.0;
+      let calstep = SolverConst.INITIAL_CAL_STEP;
       let PCXerror = 0;
 
       do {
@@ -55,7 +56,7 @@ export default class Intervention {
 
         if (testwt < 0.0) {
           PCXerror++;
-          if (PCXerror > 10) throw new Error('Unachievable Goal');
+          if (PCXerror > SolverConst.PCX_ERROR_THRESHOLD) throw new Error('Unachievable Goal');
         }
         error = Math.abs(goalwt - testwt);
 

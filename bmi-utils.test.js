@@ -1,10 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
 import { BMIUtils } from './bmi-utils.js';
-
-const UNDERWEIGHT_LIMIT = 18.5;
-const NORMAL_LIMIT = 25.0;
-const OVERWEIGHT_LIMIT = 30.0;
+import { BMI } from './constants.js';
 
 test('BMIUtils.calculate - precision and invalid inputs', () => {
   const weight = 70;
@@ -14,18 +11,20 @@ test('BMIUtils.calculate - precision and invalid inputs', () => {
   assert.strictEqual(BMIUtils.calculate(weight, height), expected);
   assert.strictEqual(BMIUtils.calculate(0, 180), 0);
   assert.strictEqual(BMIUtils.calculate(70, 0), 0);
+  assert.strictEqual(BMIUtils.calculate(null, 180), 0);
+  assert.strictEqual(BMIUtils.calculate(70, null), 0);
 });
 
 test('BMIUtils.getCategory - boundary precision', () => {
   // Verify strict < boundaries to kill >= mutants
-  assert.strictEqual(BMIUtils.getCategory(UNDERWEIGHT_LIMIT - 0.1), 'Underweight');
-  assert.strictEqual(BMIUtils.getCategory(UNDERWEIGHT_LIMIT), 'Normal');
+  assert.strictEqual(BMIUtils.getCategory(BMI.UNDERWEIGHT - 0.1), 'Underweight');
+  assert.strictEqual(BMIUtils.getCategory(BMI.UNDERWEIGHT), 'Normal');
 
-  assert.strictEqual(BMIUtils.getCategory(NORMAL_LIMIT - 0.1), 'Normal');
-  assert.strictEqual(BMIUtils.getCategory(NORMAL_LIMIT), 'Overweight');
+  assert.strictEqual(BMIUtils.getCategory(BMI.NORMAL - 0.1), 'Normal');
+  assert.strictEqual(BMIUtils.getCategory(BMI.NORMAL), 'Overweight');
 
-  assert.strictEqual(BMIUtils.getCategory(OVERWEIGHT_LIMIT - 0.1), 'Overweight');
-  assert.strictEqual(BMIUtils.getCategory(OVERWEIGHT_LIMIT), 'Obese');
+  assert.strictEqual(BMIUtils.getCategory(BMI.OVERWEIGHT - 0.1), 'Overweight');
+  assert.strictEqual(BMIUtils.getCategory(BMI.OVERWEIGHT), 'Obese');
 });
 
 test('BMIUtils.getHealthyRange - functional consistency', () => {
@@ -36,6 +35,6 @@ test('BMIUtils.getHealthyRange - functional consistency', () => {
   const lowBMI = BMIUtils.calculate(range.low, height);
   const highBMI = BMIUtils.calculate(range.high, height);
 
-  assert.strictEqual(lowBMI, UNDERWEIGHT_LIMIT);
-  assert.strictEqual(highBMI, NORMAL_LIMIT);
+  assert.strictEqual(lowBMI, BMI.UNDERWEIGHT);
+  assert.strictEqual(highBMI, BMI.NORMAL);
 });

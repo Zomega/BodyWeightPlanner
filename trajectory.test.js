@@ -9,8 +9,6 @@ const createTestBaseline = () => new Baseline(true, 23, 180, 70, 18, 1716, 1.6, 
 test('DailyParams - flag mutation kill', () => {
   const d = new DailyParams();
   assert.strictEqual(d.flag, false);
-  // If mutant makes it true, this test still passes unless we check it on a fresh instance
-  // which we just did.
 });
 
 test('DailyParams trajectory - Sort order Day 0 check', () => {
@@ -25,7 +23,6 @@ test('DailyParams trajectory - Sort order Day 0 check', () => {
   const traj = DailyParams.makeparamtrajectory(b, [int2, int1], 10);
 
   // Day 1 should be 1000 if int1 is first.
-  // If int2 is first, day 1 might be baseline because int2.day(5) > 1.
   assert.strictEqual(traj[1].calories, 1000);
 });
 
@@ -41,8 +38,7 @@ test('DailyParams trajectory - Sort mutant kill', () => {
 
   const traj = DailyParams.makeparamtrajectory(b, [int2, int1], 10);
 
-  // If sorted correctly, day 3 is 2000. If reversed (+), day 3 is baseline (~2746) or 3000?
-  // actually if reversed, int2(5) is first. At day 3, int2.day > 3, so it stays baseline.
+  // If sorted correctly, day 3 is 2000.
   assert.strictEqual(traj[3].calories, 2000);
 });
 
@@ -56,9 +52,6 @@ test('DailyParams trajectory - ramping arithmetic survivors', () => {
   int.rampon = true;
 
   const traj = DailyParams.makeparamtrajectory(b, int, 11);
-
-  // duration = 10 - 0 = 10. (mutant + would be 10)
-  // progress = (i-0)/10. (mutant + would be (i+0)/10)
 
   // Test day 0 explicitly to kill i >= lastDay mutant
   assert.strictEqual(traj[0].calories, startCals);
@@ -93,8 +86,7 @@ test('DailyParams trajectory - Ramping arithmetic precision', () => {
   const traj = DailyParams.makeparamtrajectory(b, int, 11);
 
   // Day 1 (10% progress)
-  // Cals: 1000 + 0.1 * (2000 - 1000) = 1100. If (target + last), result 1300.
-  // Sodium: 1000 + 0.1 * (2000 - 1000) = 1100.
+  // Cals: 1000 + 0.1 * (2000 - 1000) = 1100.
   assert.strictEqual(traj[1].calories, 1100);
   assert.strictEqual(traj[1].sodium, 1100);
   assert.strictEqual(traj[1].carbpercent, 55);

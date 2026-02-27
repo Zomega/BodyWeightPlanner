@@ -12,7 +12,8 @@
     "bodymodel.js",
     "dailyparams.js",
     "intervention.js",
-    "pal-calculator.js"
+    "pal-calculator.js",
+    "physiology.js"
   ],
   "coverageAnalysis": "perTest"
 }
