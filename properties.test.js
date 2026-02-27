@@ -1,5 +1,4 @@
 import { test } from 'node:test';
-import assert from 'node:assert';
 import fc from 'fast-check';
 import { BMIUtils } from './bmi-utils.js';
 import { PALCalculator } from './pal-calculator.js';
@@ -8,10 +7,14 @@ import BodyModel from './bodymodel.js';
 
 test('BMI Property: Should always be non-negative for positive inputs', () => {
   fc.assert(
-    fc.property(fc.double({ min: 0.1, max: 500 }), fc.double({ min: 10, max: 300 }), (weight, height) => {
-      const bmi = BMIUtils.calculate(weight, height);
-      return bmi >= 0 && !isNaN(bmi) && isFinite(bmi);
-    })
+    fc.property(
+      fc.double({ min: 0.1, max: 500 }),
+      fc.double({ min: 10, max: 300 }),
+      (weight, height) => {
+        const bmi = BMIUtils.calculate(weight, height);
+        return bmi >= 0 && !isNaN(bmi) && isFinite(bmi);
+      }
+    )
   );
 });
 

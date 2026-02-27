@@ -46,7 +46,7 @@ export const StorageService = {
         try {
           // Attempt to parse nested JSON so the export is readable
           data[key] = JSON.parse(value);
-        } catch (e) {
+        } catch {
           data[key] = value;
         }
       }

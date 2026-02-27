@@ -72,13 +72,13 @@ export default class DailyParams {
 
       // Check if we are currently in a ramp period for the 'next' upcoming intervention
       const upcoming = activeInterventions.find((int) => int.day > i && int.rampon);
-      
+
       // We only ramp if there was a previous point to ramp FROM
       if (upcoming && i >= lastDay) {
         const startDay = lastDay;
         const endDay = upcoming.day;
         const duration = endDay - startDay;
-        
+
         const progress = (i - startDay) / duration;
 
         const targetCals = upcoming.calories;

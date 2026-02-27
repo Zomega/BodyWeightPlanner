@@ -83,7 +83,11 @@
         <section class="card">
           <div class="section-header">
             <h2>2. BMI Analysis</h2>
-            <button id="btn-bmi-info" class="icon-btn-secondary" title="Factors affecting BMI accuracy">
+            <button
+              id="btn-bmi-info"
+              class="icon-btn-secondary"
+              title="Factors affecting BMI accuracy"
+            >
               <span class="material-symbols-outlined">info</span>
             </button>
           </div>
@@ -140,7 +144,11 @@
                 <span id="macro-fat" class="value">-</span><span class="unit">g</span>
               </div>
             </div>
-            <div id="dietary-tip" class="alert-box hidden" style="background: #e1f5fe; color: #01579b;"></div>
+            <div
+              id="dietary-tip"
+              class="alert-box hidden"
+              style="background: #e1f5fe; color: #01579b"
+            ></div>
           </div>
         </section>
 
@@ -221,14 +229,14 @@
             <strong>only on your device</strong> using browser local storage. No data is transmitted
             to or stored on any external servers.
           </p>
-          <div class="flex-row flex-wrap" style="gap: 1rem;">
+          <div class="flex-row flex-wrap" style="gap: 1rem">
             <button type="button" id="btn-export" class="action-btn small">
               Export Data (JSON)
             </button>
             <button type="button" id="btn-import-trigger" class="action-btn small">
               Import Data (JSON)
             </button>
-            <input type="file" id="import-file" accept=".json" style="display: none;" />
+            <input type="file" id="import-file" accept=".json" style="display: none" />
             <button type="button" id="btn-reset-all" class="action-btn danger small">
               Reset All Data & Settings
             </button>
@@ -244,12 +252,30 @@
           <button type="button" class="close-modal-btn" title="Close">&times;</button>
         </div>
         <div class="modal-body">
-          <p class="help-text">BMI is a proxy measurement for body fatness based on mass and height. It does not directly measure body composition and has several known technical limitations:</p>
+          <p class="help-text">
+            BMI is a proxy measurement for body fatness based on mass and height. It does not
+            directly measure body composition and has several known technical limitations:
+          </p>
           <ul class="help-text">
-            <li><strong>Composition Bias:</strong> BMI does not differentiate between lean muscle mass and adipose tissue. High-performance athletes may be categorized as overweight or obese despite low body fat.</li>
-            <li><strong>Age-Related Variance:</strong> Bone density and muscle mass loss in older adults can skew results. Research indicates that higher BMI ranges (25–27) may be associated with lower mortality in senior populations.</li>
-            <li><strong>Scaling Issues:</strong> The weight-to-height squared formula may over-categorize taller individuals and under-categorize shorter individuals.</li>
-            <li><strong>Ethnic Distribution:</strong> Body fat distribution and metabolic risk thresholds vary significantly across different ethnic backgrounds at identical BMI levels.</li>
+            <li>
+              <strong>Composition Bias:</strong> BMI does not differentiate between lean muscle mass
+              and adipose tissue. High-performance athletes may be categorized as overweight or
+              obese despite low body fat.
+            </li>
+            <li>
+              <strong>Age-Related Variance:</strong> Bone density and muscle mass loss in older
+              adults can skew results. Research indicates that higher BMI ranges (25–27) may be
+              associated with lower mortality in senior populations.
+            </li>
+            <li>
+              <strong>Scaling Issues:</strong> The weight-to-height squared formula may
+              over-categorize taller individuals and under-categorize shorter individuals.
+            </li>
+            <li>
+              <strong>Ethnic Distribution:</strong> Body fat distribution and metabolic risk
+              thresholds vary significantly across different ethnic backgrounds at identical BMI
+              levels.
+            </li>
           </ul>
         </div>
         <div class="modal-actions">

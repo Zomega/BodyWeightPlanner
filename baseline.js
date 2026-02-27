@@ -34,12 +34,12 @@ export default class Baseline {
     this.rmrCalc = rmrCalc;
 
     const safeNum = (val, def) => {
-        try {
-            const n = parseFloat(val);
-            return isNaN(n) ? def : n;
-        } catch (e) {
-            return def;
-        }
+      try {
+        const n = parseFloat(val);
+        return isNaN(n) ? def : n;
+      } catch {
+        return def;
+      }
     };
 
     this.age = safeNum(age, this.INITIAL_AGE);
@@ -47,13 +47,13 @@ export default class Baseline {
 
     const h = safeNum(height, this.INITIAL_HEIGHT);
     this.height = Math.max(this.MIN_HEIGHT, Math.min(this.MAX_HEIGHT, h));
-    
+
     const w = safeNum(weight, this.INITIAL_WEIGHT);
     this.weight = Math.max(this.MIN_WEIGHT, w);
-    
+
     const b = safeNum(bfp, this.INITIAL_BFP);
     this.bfp = Math.max(this.MIN_BFP, Math.min(this.MAX_BFP, b));
-    
+
     this.rmr = safeNum(rmr, this.INITIAL_RMR);
     this.pal = Math.max(this.MIN_PAL, safeNum(pal, this.INITIAL_PAL));
 
@@ -150,13 +150,16 @@ export default class Baseline {
   }
 
   getECW() {
-    if (this.isMale) return 0.025 * this.age + 9.57 * (this.height / 100.0) + 0.191 * this.weight - 12.4;
+    if (this.isMale)
+      return 0.025 * this.age + 9.57 * (this.height / 100.0) + 0.191 * this.weight - 12.4;
     else return -4.0 + 5.98 * (this.height / 100.0) + 0.167 * this.weight;
   }
 
   getNewECW(days, newWeight) {
     if (this.isMale)
-      return 0.025 * (this.age + days / 365.0) + 9.57 * (this.height / 100.0) + 0.191 * newWeight - 12.4;
+      return (
+        0.025 * (this.age + days / 365.0) + 9.57 * (this.height / 100.0) + 0.191 * newWeight - 12.4
+      );
     else return -4.0 + 5.98 * (this.height / 100.0) + 0.167 * newWeight;
   }
 

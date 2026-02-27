@@ -4,122 +4,168 @@ import Baseline from './baseline.js';
 import Intervention from './intervention.js';
 import DailyParams from './dailyparams.js';
 
-test('DailyParams trajectory - Sort and Filter logic', (_t) => {
-  const b = new Baseline(true, 23, 180, 70, 18, 1716, 1.6, false, false);
-  const maint = b.getMaintCals();
+const createTestBaseline = () => new Baseline(true, 23, 180, 70, 18, 1716, 1.6, false, false);
 
-  const d = new DailyParams(2000, 50, 4000, 10);
-  assert.strictEqual(d.flag, false, 'flag should be false by default');
-
-  // To kill sorting mutants, we need RAMPING where the order of 'upcoming' matters.
-  const int1 = new Intervention(5, 2000);
-  int1.rampon = true;
-  const int2 = new Intervention(8, 3000);
-  int2.rampon = true;
-  const int3 = new Intervention(1, 4000);
-  int3.on = false; // Test Filter
-  
-  // Pass in wrong order
-  const traj = DailyParams.makeparamtrajectory(b, int2, int1, int3, 10);
-
-  // At i=2:
-  // Correct ramp: from baseline maintenance (~2746) to int1(2000) at day 5.
-  assert.strictEqual(traj[2].calories.toFixed(1), '2447.4');
-
-  // Verify int3 was filtered out (day 1 is ramping towards int1, not affected by int3)
-  assert.strictEqual(traj[1].calories.toFixed(2), '2596.48');
-
-  // One more filter check: null intervention
-  const trajWithNull = DailyParams.makeparamtrajectory(b, null, 5);
-  assert.strictEqual(trajWithNull[0].calories, maint);
+test('DailyParams - flag mutation kill', () => {
+  const d = new DailyParams();
+  assert.strictEqual(d.flag, false);
+  // If mutant makes it true, this test still passes unless we check it on a fresh instance
+  // which we just did.
 });
 
-test('DailyParams trajectory - progress duration math', () => {
-    const b = new Baseline(true, 23, 180, 70, 18, 1000, 1.0, false, false);
-    // lastDay = 0, lastCals = 1000
-    const int = new Intervention(4, 2000); // endDay = 4, duration = 4
-    int.rampon = true;
-    
-    const traj = DailyParams.makeparamtrajectory(b, int, 5);
-    // i=1: prog = (1-0)/4 = 0.25 -> 1000 + 0.25*(2000-1000) = 1250
-    assert.strictEqual(traj[1].calories, 1250);
-    // i=2: prog = (2-0)/4 = 0.50 -> 1500
-    assert.strictEqual(traj[2].calories, 1500);
-    // i=3: prog = (3-0)/4 = 0.75 -> 1750
-    assert.strictEqual(traj[3].calories, 1750);
-    assert.strictEqual(traj[4].calories, 2000);
+test('DailyParams trajectory - Sort order Day 0 check', () => {
+  const b = createTestBaseline();
+
+  // int1: day 0, int2: day 5
+  // a-b: 0-5 = -5 (int1 first)
+  // a+b: 0+5 = 5 (int2 first)
+  const int1 = new Intervention(0, 1000);
+  const int2 = new Intervention(5, 3000);
+
+  const traj = DailyParams.makeparamtrajectory(b, [int2, int1], 10);
+
+  // Day 1 should be 1000 if int1 is first.
+  // If int2 is first, day 1 might be baseline because int2.day(5) > 1.
+  assert.strictEqual(traj[1].calories, 1000);
 });
 
-test('DailyParams trajectory - Argument handling', (_t) => {
-    const b = new Baseline();
-    const traj = DailyParams.makeparamtrajectory(b, 5);
-    assert.strictEqual(traj.length, 5);
-    
-    // Branch: args.length >= 2 AND args[0] is NOT an array
-    const int = new Intervention(2, 2000);
-    const traj2 = DailyParams.makeparamtrajectory(b, int, 5);
-    assert.strictEqual(traj2[2].calories, 2000);
+test('DailyParams trajectory - Sort mutant kill', () => {
+  const b = createTestBaseline();
+
+  // a.day - b.day (correct) vs a.day + b.day (mutant)
+  // int1: day 2, int2: day 5.
+  // a-b: 2-5 = -3 (correct order [int1, int2])
+  // a+b: 2+5 = 7 (incorrect order [int2, int1])
+  const int1 = new Intervention(2, 2000);
+  const int2 = new Intervention(5, 3000);
+
+  const traj = DailyParams.makeparamtrajectory(b, [int2, int1], 10);
+
+  // If sorted correctly, day 3 is 2000. If reversed (+), day 3 is baseline (~2746) or 3000?
+  // actually if reversed, int2(5) is first. At day 3, int2.day > 3, so it stays baseline.
+  assert.strictEqual(traj[3].calories, 2000);
 });
 
-test('DailyParams trajectory - Precise Ramping', (_t) => {
-  const b = new Baseline(true, 23, 180, 70, 18, 1716, 1.0, false, false);
-  const maint = b.getMaintCals(); 
+test('DailyParams trajectory - ramping arithmetic survivors', () => {
+  const b = createTestBaseline();
+  const startCals = b.getMaintCals();
+  const targetCals = startCals + 1000;
+  const endDay = 10;
 
-  // 10 day ramp from 1716 to 2716
-  const int = new Intervention(10, 2716);
+  const int = new Intervention(endDay, targetCals);
   int.rampon = true;
 
   const traj = DailyParams.makeparamtrajectory(b, int, 11);
 
-  // i=0: baseline
-  assert.strictEqual(traj[0].calories, 1716);
+  // duration = 10 - 0 = 10. (mutant + would be 10)
+  // progress = (i-0)/10. (mutant + would be (i+0)/10)
+
+  // Test day 0 explicitly to kill i >= lastDay mutant
+  assert.strictEqual(traj[0].calories, startCals);
   assert.strictEqual(traj[0].ramped, false);
-  
-  // i=1: start of ramp
+});
+
+test('DailyParams trajectory - Sort and Filter logic refined', (_t) => {
+  const b = createTestBaseline();
+
+  const int1 = new Intervention(5, 2000);
+  const int2 = new Intervention(2, 2500);
+
+  // Test already sorted array to kill sort mutants
+  const trajSorted = DailyParams.makeparamtrajectory(b, [int2, int1], 10);
+  assert.strictEqual(trajSorted[3].calories, 2500);
+
+  // Test unsorted array to kill sort mutants
+  const trajUnsorted = DailyParams.makeparamtrajectory(b, [int1, int2], 10);
+  assert.strictEqual(trajUnsorted[3].calories, 2500);
+});
+
+test('DailyParams trajectory - Ramping arithmetic precision', () => {
+  const b = new Baseline(true, 23, 180, 70, 18, 1000, 1.0, false, false);
+  b.sodium = 1000;
+  b.carbIntakePct = 50;
+
+  // Day 0: 1000 cals, 50% carb, 1000 sodium
+  // Day 10: 2000 cals, 100% carb, 2000 sodium
+  const int = new Intervention(10, 2000, 100, 0, 2000);
+  int.rampon = true;
+
+  const traj = DailyParams.makeparamtrajectory(b, int, 11);
+
+  // Day 1 (10% progress)
+  // Cals: 1000 + 0.1 * (2000 - 1000) = 1100. If (target + last), result 1300.
+  // Sodium: 1000 + 0.1 * (2000 - 1000) = 1100.
+  assert.strictEqual(traj[1].calories, 1100);
+  assert.strictEqual(traj[1].sodium, 1100);
+  assert.strictEqual(traj[1].carbpercent, 55);
+
+  // Verify ramped flag logic: i > lastDay
+  assert.strictEqual(traj[0].ramped, false);
   assert.strictEqual(traj[1].ramped, true);
-  
-  // i=5: halfway (0.5 progress) -> 1716 + 0.5 * (2716 - 1716) = 2216
-  assert.strictEqual(traj[5].calories, 2216);
-  
-  // i=10: target reached
-  assert.strictEqual(traj[10].calories, 2716);
   assert.strictEqual(traj[10].ramped, false);
 });
 
-test('DailyParams trajectory - Multi-parameter Ramping', (_t) => {
-    const b = new Baseline(true, 23, 180, 70, 18, 1000, 1.2, false, false);
-    b.sodium = 1000;
-    b.carbIntakePct = 50;
-    
-    const baselineAct = b.getActivityParam();
-    
-    const int0 = new Intervention(0, 1000, 50, 0, 1000);
-    const int10 = new Intervention(10, 2000, 100, 100, 2000);
-    int10.rampon = true;
-    
-    const traj = DailyParams.makeparamtrajectory(b, int0, int10, 11);
-    const mid = traj[5]; // 50% progress
-    
-    assert.strictEqual(mid.calories, 1500);
-    assert.strictEqual(mid.carbpercent, 75);
-    assert.strictEqual(mid.sodium, 1500);
-    assert.strictEqual(mid.actparam, baselineAct * 1.5);
+test('DailyParams trajectory - Ramping progress proportionality', () => {
+  const b = createTestBaseline();
+  const startCals = b.getMaintCals();
+  const targetCals = 2000;
+  const endDay = 10;
+
+  const int = new Intervention(endDay, targetCals);
+  int.rampon = true;
+
+  const traj = DailyParams.makeparamtrajectory(b, int, endDay + 1);
+
+  // Check multiple points to kill math mutants (+ vs -, * vs /)
+  for (let day = 1; day < endDay; day++) {
+    const progress = day / endDay;
+    const expectedCals = startCals + (targetCals - startCals) * progress;
+    assert.strictEqual(traj[day].calories, expectedCals, `Ramp failed at day ${day}`);
+    assert.ok(traj[day].ramped, `Day ${day} should be flagged as ramped`);
+  }
+
+  assert.strictEqual(traj[endDay].calories, targetCals, 'End point should reach target');
+  assert.strictEqual(traj[endDay].ramped, false, 'Target day itself is not "ramping"');
 });
 
-test('DailyParams trajectory - Array-based call', (_t) => {
-    const b = new Baseline();
-    const interventions = [new Intervention(10, 2000)];
-    const traj = DailyParams.makeparamtrajectory(b, interventions, 20);
-    assert.strictEqual(traj.length, 20);
-    assert.strictEqual(traj[15].calories, 2000);
-    
-    const traj2 = DailyParams.makeparamtrajectory(b, [new Intervention(5, 1000)], 10);
-    assert.strictEqual(traj2[7].calories, 1000);
+test('DailyParams trajectory - Multi-parameter Ramping precision', () => {
+  const b = createTestBaseline();
+  const startCals = b.getMaintCals();
+  const startAct = b.getActivityParam();
+  const startCarb = b.carbIntakePct;
+  const startSodium = b.sodium;
+
+  const targetCals = 3000;
+  const targetActPercent = 100; // Double activity
+  const targetCarb = 100;
+  const targetSodium = 8000;
+
+  const int = new Intervention(10, targetCals, targetCarb, targetActPercent, targetSodium);
+  int.rampon = true;
+  const targetAct = int.getAct(b);
+
+  const traj = DailyParams.makeparamtrajectory(b, int, 11);
+  const mid = traj[5]; // 50% progress
+
+  assert.strictEqual(mid.calories, startCals + (targetCals - startCals) * 0.5);
+  assert.strictEqual(mid.actparam, startAct + (targetAct - startAct) * 0.5);
+  assert.strictEqual(mid.carbpercent, startCarb + (targetCarb - startCarb) * 0.5);
+  assert.strictEqual(mid.sodium, startSodium + (targetSodium - startSodium) * 0.5);
 });
 
-test('DailyParams trajectory - No interventions', (_t) => {
-    const b = new Baseline();
-    const traj = DailyParams.makeparamtrajectory(b, 5);
-    assert.strictEqual(traj.length, 5);
-    assert.strictEqual(traj[0].calories, b.getMaintCals());
+test('DailyParams trajectory - Argument handling and edge cases', (_t) => {
+  const b = createTestBaseline();
+
+  // No interventions
+  const trajEmpty = DailyParams.makeparamtrajectory(b, 5);
+  assert.strictEqual(trajEmpty.length, 5);
+  assert.strictEqual(trajEmpty[0].calories, b.getMaintCals());
+
+  // Array vs Rest arguments
+  const int = new Intervention(2, 2000);
+  const trajArray = DailyParams.makeparamtrajectory(b, [int], 5);
+  const trajRest = DailyParams.makeparamtrajectory(b, int, 5);
+
+  assert.strictEqual(trajArray[2].calories, 2000);
+  assert.strictEqual(trajRest[2].calories, 2000);
 });

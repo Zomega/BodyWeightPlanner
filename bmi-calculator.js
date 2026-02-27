@@ -27,7 +27,7 @@ class BMICalculatorApp {
   saveSharedSettings() {
     StorageService.saveSettings({
       isMetric: this.isMetric,
-      isCalories: this.isCalories
+      isCalories: this.isCalories,
     });
   }
 
@@ -51,7 +51,9 @@ class BMICalculatorApp {
 
     document.getElementById('unit-metric')?.addEventListener('click', () => this.setUnits(true));
     document.getElementById('unit-us')?.addEventListener('click', () => this.setUnits(false));
-    document.getElementById('unit-cals')?.addEventListener('click', () => this.setEnergyUnits(true));
+    document
+      .getElementById('unit-cals')
+      ?.addEventListener('click', () => this.setEnergyUnits(true));
     document.getElementById('unit-kj')?.addEventListener('click', () => this.setEnergyUnits(false));
 
     document.getElementById('btn-export')?.addEventListener('click', () => {
@@ -136,10 +138,16 @@ class BMICalculatorApp {
   applyModeUI() {
     document.getElementById('mode-reverse')?.classList.toggle('active', this.isReverseMode);
     document.getElementById('mode-forward')?.classList.toggle('active', !this.isReverseMode);
-    document.querySelectorAll('.mode-reverse-only').forEach((el) => el.classList.toggle('hidden', !this.isReverseMode));
-    document.querySelectorAll('.mode-forward-only').forEach((el) => el.classList.toggle('hidden', this.isReverseMode));
+    document
+      .querySelectorAll('.mode-reverse-only')
+      .forEach((el) => el.classList.toggle('hidden', !this.isReverseMode));
+    document
+      .querySelectorAll('.mode-forward-only')
+      .forEach((el) => el.classList.toggle('hidden', this.isReverseMode));
 
-    document.getElementById('app-title').textContent = this.isReverseMode ? 'Reverse BMI Calculator' : 'BMI Calculator';
+    document.getElementById('app-title').textContent = this.isReverseMode
+      ? 'Reverse BMI Calculator'
+      : 'BMI Calculator';
     document.getElementById('app-subtitle').textContent = this.isReverseMode
       ? 'Find your goal weight based on target BMI'
       : 'Calculate your BMI based on weight and height';
@@ -154,15 +162,23 @@ class BMICalculatorApp {
   applyUnitUI() {
     document.getElementById('unit-metric')?.classList.toggle('active', this.isMetric);
     document.getElementById('unit-us')?.classList.toggle('active', !this.isMetric);
-    document.querySelectorAll('.height-metric').forEach((el) => el.classList.toggle('hidden', !this.isMetric));
-    document.querySelectorAll('.height-us').forEach((el) => el.classList.toggle('hidden', this.isMetric));
-    document.querySelectorAll('.unit-weight').forEach((el) => (el.textContent = this.isMetric ? 'kg' : 'lbs'));
+    document
+      .querySelectorAll('.height-metric')
+      .forEach((el) => el.classList.toggle('hidden', !this.isMetric));
+    document
+      .querySelectorAll('.height-us')
+      .forEach((el) => el.classList.toggle('hidden', this.isMetric));
+    document
+      .querySelectorAll('.unit-weight')
+      .forEach((el) => (el.textContent = this.isMetric ? 'kg' : 'lbs'));
   }
 
   applyEnergyUnitUI() {
     document.getElementById('unit-cals')?.classList.toggle('active', this.isCalories);
     document.getElementById('unit-kj')?.classList.toggle('active', !this.isCalories);
-    document.querySelectorAll('.unit-energy').forEach((el) => (el.textContent = this.isCalories ? 'kcal/day' : 'kj/day'));
+    document
+      .querySelectorAll('.unit-energy')
+      .forEach((el) => (el.textContent = this.isCalories ? 'kcal/day' : 'kj/day'));
   }
 
   getHeightCm() {
@@ -227,7 +243,8 @@ class BMICalculatorApp {
     if (category === 'Normal') {
       descEl.style.background = '#e8f5e9';
       descEl.style.color = '#2e7d32';
-      categoryHtml = '<strong>Within Standard Range:</strong> This BMI is statistically associated with the lowest risk for metabolic and cardiovascular disease in the general population.';
+      categoryHtml =
+        '<strong>Within Standard Range:</strong> This BMI is statistically associated with the lowest risk for metabolic and cardiovascular disease in the general population.';
       dietaryTitle = 'Maintenance Strategy:';
       pRange = { min: 0.5, max: 0.7 };
       macros = { c: 45, p: 25, f: 30 };
@@ -235,9 +252,11 @@ class BMICalculatorApp {
     } else if (category === 'Underweight') {
       descEl.style.background = '#fff3e0';
       descEl.style.color = '#e65100';
-      categoryHtml = '<strong>Sub-standard Mass:</strong> Values in this range can indicate nutritional deficiencies, reduced immune function, or low bone density.';
+      categoryHtml =
+        '<strong>Sub-standard Mass:</strong> Values in this range can indicate nutritional deficiencies, reduced immune function, or low bone density.';
       dietaryTitle = 'Hypercaloric Strategy:';
-      dietaryTip = '<strong>Note:</strong> Prioritize caloric density and protein intake to support lean mass accrual.';
+      dietaryTip =
+        '<strong>Note:</strong> Prioritize caloric density and protein intake to support lean mass accrual.';
       pRange = { min: 0.7, max: 0.8 };
       macros = { c: 50, p: 20, f: 30 };
       calAdjustment = 500;
@@ -266,7 +285,8 @@ class BMICalculatorApp {
     const energyMult = this.isCalories ? 1 : 4.184;
     const baseMaint = weightKg * 30;
     const estCals = Math.max(1200, Math.round(baseMaint + calAdjustment));
-    document.getElementById('rec-cals').textContent = `${Math.round((estCals - 100) * energyMult)} - ${Math.round((estCals + 100) * energyMult)}`;
+    document.getElementById('rec-cals').textContent =
+      `${Math.round((estCals - 100) * energyMult)} - ${Math.round((estCals + 100) * energyMult)}`;
 
     const pMin = Math.round(weightLbs * pRange.min);
     const pMax = Math.round(weightLbs * pRange.max);
@@ -276,8 +296,12 @@ class BMICalculatorApp {
     document.getElementById('macro-p-pct').textContent = macros.p;
     document.getElementById('macro-f-pct').textContent = macros.f;
 
-    document.getElementById('macro-carbs').textContent = Math.round((estCals * (macros.c / 100)) / 4);
-    document.getElementById('macro-protein').textContent = Math.round((estCals * (macros.p / 100)) / 4);
+    document.getElementById('macro-carbs').textContent = Math.round(
+      (estCals * (macros.c / 100)) / 4
+    );
+    document.getElementById('macro-protein').textContent = Math.round(
+      (estCals * (macros.p / 100)) / 4
+    );
     document.getElementById('macro-fat').textContent = Math.round((estCals * (macros.f / 100)) / 9);
 
     // 5. Summary
@@ -308,7 +332,7 @@ class BMICalculatorApp {
       { label: 'Underweight', bmi: '< 18.5', minBmi: 0, maxBmi: 18.5 },
       { label: 'Normal', bmi: '18.5 – 24.9', minBmi: 18.5, maxBmi: 25 },
       { label: 'Overweight', bmi: '25.0 – 29.9', minBmi: 25, maxBmi: 30 },
-      { label: 'Obese', bmi: '≥ 30.0', minBmi: 30, maxBmi: 60 }
+      { label: 'Obese', bmi: '≥ 30.0', minBmi: 30, maxBmi: 60 },
     ];
 
     const conversion = this.isMetric ? 1 : 2.20462;
@@ -345,7 +369,7 @@ class BMICalculatorApp {
       isReverseMode: this.isReverseMode,
       targetBmi: this.targetBmiInput.value,
       currentWeight: this.currentWeightInput.value,
-      heightCm: this.getHeightCm()
+      heightCm: this.getHeightCm(),
     };
     StorageService.save(data, 'bmi_calculator_data');
   }
@@ -354,12 +378,12 @@ class BMICalculatorApp {
     this.loadSharedSettings();
     const data = StorageService.load('bmi_calculator_data');
     if (!data) {
-        this.applyUnitUI();
-        this.applyEnergyUnitUI();
-        this.applyModeUI();
-        return;
+      this.applyUnitUI();
+      this.applyEnergyUnitUI();
+      this.applyModeUI();
+      return;
     }
-    
+
     this.isReverseMode = data.isReverseMode !== undefined ? data.isReverseMode : false;
 
     this.applyUnitUI();
@@ -368,16 +392,16 @@ class BMICalculatorApp {
 
     if (data.targetBmi) this.targetBmiInput.value = data.targetBmi;
     if (data.currentWeight) this.currentWeightInput.value = data.currentWeight;
-    
+
     const height = data.heightCm;
     if (height) {
-        if (this.isMetric) {
-            document.getElementById('height').value = height;
-        } else {
-            const totalInches = height / 2.54;
-            document.getElementById('height-ft').value = Math.floor(totalInches / 12);
-            document.getElementById('height-in').value = Math.round(totalInches % 12);
-        }
+      if (this.isMetric) {
+        document.getElementById('height').value = height;
+      } else {
+        const totalInches = height / 2.54;
+        document.getElementById('height-ft').value = Math.floor(totalInches / 12);
+        document.getElementById('height-in').value = Math.round(totalInches % 12);
+      }
     }
   }
 }

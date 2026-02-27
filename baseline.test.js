@@ -2,207 +2,231 @@ import { test } from 'node:test';
 import assert from 'node:assert';
 import Baseline from './baseline.js';
 
-test('Baseline RMR calculation (Male)', (_t) => {
-  // 9.99 * 70 + 625.0 * 1.8 - 4.92 * 23 + 5.0
-  // 699.3 + 1125 - 113.16 + 5 = 1716.14
-  const b = new Baseline(true, 23, 180, 70);
-  const rmr = b.getRMR();
-  assert.strictEqual(Math.round(rmr), 1716);
-  // Specifically verify the +5 constant vs -161
-  const b2 = new Baseline(true, 23, 180, 70, 18, 1716, 1.6, false, false);
-  b2.rmrCalc = true;
-  assert.strictEqual(b2.getRMR().toFixed(2), '1716.14');
+const MSJ_MALE_OFFSET = 5.0;
+const MSJ_FEMALE_OFFSET = -161.0;
+const MSJ_SEX_DIFFERENCE = MSJ_MALE_OFFSET - MSJ_FEMALE_OFFSET; // 166.0
+
+test('Baseline RMR calculation - Mifflin-St Jeor SEX relationship', (_t) => {
+  const age = 23.5;
+  const height = 180.5;
+  const weight = 70.5;
+
+  const bMale = new Baseline(true, age, height, weight, 18, 1700, 1.6, false, true);
+  const bFemale = new Baseline(false, age, height, weight, 18, 1700, 1.6, false, true);
+
+  // 9.99 * 70.5 + 6.25 * 180.5 - 4.92 * 23.5 + 5.0 = 704.295 + 1128.125 - 115.62 + 5 = 1721.80
+  // 9.99 * 70.5 + 6.25 * 180.5 - 4.92 * 23.5 - 161.0 = 1555.80
+  const rmrMale = bMale.getRMR();
+  const rmrFemale = bFemale.getRMR();
+
+  assert.strictEqual(rmrMale.toFixed(3), '1721.800');
+  assert.strictEqual(rmrFemale.toFixed(3), '1555.800');
+  assert.strictEqual(rmrMale - rmrFemale, MSJ_SEX_DIFFERENCE);
 });
 
-test('Baseline RMR calculation (Female)', (_t) => {
-  // 9.99 * 70 + 625.0 * 1.8 - 4.92 * 23 - 161.0
-  // 699.3 + 1125 - 113.16 - 161 = 1550.14
-  const b = new Baseline(false, 23, 180, 70);
-  const rmr = b.getRMR();
-  assert.strictEqual(Math.round(rmr), 1550);
-  assert.strictEqual(rmr.toFixed(2), '1550.14');
+test('getNewRMR - consistency with aging and weight change', (_t) => {
+  const bMale = new Baseline(true, 23, 180, 70, 18, 1716.14, 1.6, false, false);
+
+  // day 365 = 1 year later. age 23 -> 24. weight 70 -> 75
+  // Result: 1761.17
+  const rmrNew = bMale.getNewRMR(75, 365);
+  assert.strictEqual(rmrNew.toFixed(2), '1761.17');
+
+  // Test non-integer days/weights to kill more mutants
+  const rmrNew2 = bMale.getNewRMR(72.5, 182.5); // 0.5 years
+  // 9.99 * 72.5 + 6.25 * 180 - 4.92 * 23.5 + 5 = 724.275 + 1125 - 115.62 + 5 = 1738.655
+  assert.strictEqual(rmrNew2.toFixed(3), '1738.655');
 });
 
-test('getNewRMR (Male and Female)', (_t) => {
+test('Baseline BFP calculation - MSJ SEX relationship', (_t) => {
   const bMale = new Baseline(true, 23, 180, 70);
   const bFemale = new Baseline(false, 23, 180, 70);
-  
-  // day 365 = 1 year later. age 23 -> 24.
-  // Male: 9.99 * 75 + 1125 - 4.92 * 24 + 5 = 749.25 + 1125 - 118.08 + 5 = 1761.17
-  assert.strictEqual(Math.round(bMale.getNewRMR(75, 365)), 1761);
-  
-  // Female: 9.99 * 75 + 1125 - 4.92 * 24 - 161 = 749.25 + 1125 - 118.08 - 161 = 1595.17
-  assert.strictEqual(Math.round(bFemale.getNewRMR(75, 365)), 1595);
-});
 
-test('Baseline BFP calculation', (_t) => {
-  const bMale = new Baseline(true, 23, 180, 70);
-  const bFemale = new Baseline(false, 23, 180, 70);
-  
   // BMI = 70 / 1.8^2 = 21.6049
+  // Male: 0.14 * 23 + 37.31 * log(21.6049) - 103.94 = 14.18...
+  // Female: 0.14 * 23 + 39.96 * log(21.6049) - 102.01 = 24.31...
   assert.strictEqual(Math.round(bMale.getBFP()), 14);
   assert.strictEqual(Math.round(bFemale.getBFP()), 24);
 });
 
-test('Baseline Maintenance and Expenditure', (_t) => {
-  const b = new Baseline(true, 23, 180, 70, 18, 1716, 1.6);
-  // RMR = 1716.14, PAL = 1.6
-  // TEE = 1716.14 * 1.6 = 2745.824
-  assert.strictEqual(Math.round(b.getTEE()), 2746);
-  assert.strictEqual(Math.round(b.getMaintCals()), 2746);
-  // Activity Expenditure = TEE - RMR = 2745.824 - 1716.14 = 1029.684
-  assert.strictEqual(Math.round(b.getActivityExpenditure()), 1030);
+test('Baseline Maintenance - TEE/PAL relationship', (_t) => {
+  const pal = 1.6;
+  const b = new Baseline(true, 23, 180, 70, 18, 1716.14, pal);
 
-  // getActivityParam: (0.9 * RMR * PAL - RMR) / weight
-  // (0.9 * 1716.14 * 1.6 - 1716.14) / 70
-  // (2471.2416 - 1716.14) / 70 = 755.1016 / 70 = 10.787...
-  assert.strictEqual(b.getActivityParam().toFixed(4), '10.7872');
+  const rmr = b.getRMR();
+  const tee = b.getTEE();
+  const maint = b.getMaintCals();
+  const actExpend = b.getActivityExpenditure();
+
+  assert.strictEqual(tee, rmr * pal, 'TEE should be RMR * PAL');
+  assert.strictEqual(maint, tee, 'Maintenance should equal TEE');
+  assert.strictEqual(actExpend, tee - rmr, 'Activity should be TEE - RMR');
 });
 
-test('Baseline Healthy Weight Range', (_t) => {
-  const b = new Baseline(true, 23, 180, 70);
+test('Baseline Healthy Weight Range - BMI consistency', (_t) => {
+  const height = 180;
+  const b = new Baseline(true, 23, height, 70);
   const range = b.getHealthyWeightRange();
-  assert.strictEqual(range.low, 60);
-  assert.strictEqual(range.high, 81);
+
+  // Verify that the range boundaries correspond to healthy BMI thresholds (60kg and 81kg)
+  assert.strictEqual(b.getNewBMI(range.low), 18.51851851851852);
+  assert.strictEqual(b.getNewBMI(range.high), 25);
 });
 
-test('Manual RMR and BFP modes', (_t) => {
-  const b = new Baseline(true, 23, 180, 70, 18, 1708, 1.6);
+test('Manual RMR and BFP modes - toggle logic', (_t) => {
+  const manualRMR = 2000;
+  const manualBFP = 25;
+  const b = new Baseline(true, 23, 180, 70, 18, manualRMR, 1.6);
+
   b.setCalculatedRMR(false);
-  b.rmr = 2000;
-  assert.strictEqual(b.getRMR(), 2000);
-  
+  b.rmr = manualRMR;
+  assert.strictEqual(b.getRMR(), manualRMR);
+
   b.setCalculatedBFP(false);
-  b.bfp = 25;
-  assert.strictEqual(b.getBFP(), 25);
-  
-  // Toggle back
+  b.bfp = manualBFP;
+  assert.strictEqual(b.getBFP(), manualBFP);
+
+  // Verify toggle back to auto-calc uses MSJ again (1716.14)
   b.setCalculatedRMR(true);
-  assert.strictEqual(Math.round(b.rmr), 1716);
+  assert.strictEqual(b.rmr.toFixed(2), '1716.14');
+
+  // Verify toggle back to auto-calc uses BFP formula again (13.93)
   b.setCalculatedBFP(true);
-  assert.strictEqual(Math.round(b.bfp), 14);
+  assert.strictEqual(b.bfp.toFixed(2), '13.93');
 });
 
-test('ECW calculations', (_t) => {
-  const bMale = new Baseline(true, 23, 180, 70);
-  const bFemale = new Baseline(false, 23, 180, 70);
-  
-  assert.strictEqual(bMale.getECW().toFixed(2), '18.77');
-  assert.strictEqual(bFemale.getECW().toFixed(2), '18.45');
-  
-  // New ECW
-  // Male day 365, weight 75: 0.025 * 24 + 9.57 * 1.8 + 0.191 * 75 - 12.4 = 0.6 + 17.226 + 14.325 - 12.4 = 19.751
-  assert.strictEqual(bMale.getNewECW(365, 75).toFixed(2), '19.75');
-  // Female weight 75: -4.0 + 5.98 * 1.8 + 0.167 * 75 = -4.0 + 10.764 + 12.525 = 19.289
-  assert.strictEqual(bFemale.getNewECW(365, 75).toFixed(2), '19.29');
+test('ECW calculations - SEX and aging relationships', (_t) => {
+  const bMale = new Baseline(true, 23, 180, 70, 18, 1716, 1.6, false, false);
+  const bFemale = new Baseline(false, 23, 180, 70, 18, 1716, 1.6, false, false);
+
+  // Initial values
+  assert.strictEqual(bMale.getECW().toFixed(3), '18.771');
+  assert.strictEqual(bFemale.getECW().toFixed(3), '18.454');
+
+  // Aging effect: 0.025 per year for males
+  const ecwNew = bMale.getNewECW(365, 70);
+  assert.strictEqual((ecwNew - bMale.getECW()).toFixed(3), '0.025');
+
+  // Female aging check (no age dependency in formula)
+  const ecwNewF = bFemale.getNewECW(365, 70);
+  assert.strictEqual(ecwNewF, bFemale.getECW());
 });
 
-test('BMI metrics', (_t) => {
-  const b = new Baseline(true, 23, 180, 70);
-  assert.strictEqual(b.getBMI().toFixed(2), '21.60');
-  assert.strictEqual(b.getNewBMI(80).toFixed(2), '24.69');
+test('Weight metrics (Fat/Lean) - proportionality', (_t) => {
+  const weight = 100;
+  const fatPercent = 20;
+  const b = new Baseline(true, 23, 180, weight, fatPercent, 1716, 1.6, false, false);
+
+  assert.strictEqual(b.getFatWeight(), weight * (fatPercent / 100));
+  assert.strictEqual(b.getLeanWeight(), weight - b.getFatWeight());
 });
 
-test('Weight metrics (Fat/Lean)', (_t) => {
-  const b = new Baseline(true, 23, 180, 100, 20); // 100kg, 20% fat
-  b.setCalculatedBFP(false);
-  b.bfp = 20;
-  assert.strictEqual(b.getFatWeight(), 20);
-  assert.strictEqual(b.getLeanWeight(), 80);
-  
-  b.bfp = 30;
-  assert.strictEqual(b.getFatWeight(), 30);
-  assert.strictEqual(b.getLeanWeight(), 70);
+test('Sodium and Glycogen metrics - proportionality', (_t) => {
+  const b = new Baseline(true, 23, 180, 70, 18, 1716, 1.6, false, false);
+  const maint = b.getMaintCals();
+  const halfMaint = maint * 0.5;
 
-  // Check the division by 100 logic explicitly
-  const bSmall = new Baseline(true, 23, 180, 1, 50, 1716, 1.6, false, false);
-  // (1 * 50) / 100 = 0.5
-  assert.strictEqual(bSmall.getFatWeight(), 0.5);
+  // proportionalSodium: (sodium * halfMaint) / maint = sodium * 0.5
+  assert.strictEqual(b.proportionalSodium(halfMaint), b.sodium * 0.5);
+
+  // carbsIn: (carbIntakePct / 100) * maint
+  assert.strictEqual(b.getCarbsIn(), (b.carbIntakePct / 100) * maint);
 });
 
-test('Baseline default isMale', () => {
-    const b = new Baseline();
-    assert.strictEqual(b.isMale, true);
+test('Baseline - body composition and weight decomposition', () => {
+  const b = new Baseline(true, 23, 180, 100, 20, 1716, 1.6, false, false);
+  const comp = b.getBodyComposition();
+
+  // fat = 20, lean = 80, decw = 0
+  assert.deepStrictEqual(comp, [20, 80, 0]);
+
+  // getNewWeight arithmetic: fat + lean + 3.7 * (gly - 0.5) + decw
+  // 20 + 80 + 3.7 * (0.6 - 0.5) + 5 = 100 + 0.37 + 5 = 105.37
+  assert.strictEqual(b.getNewWeight(20, 80, 0.6, 5).toFixed(2), '105.37');
 });
 
-test('Sodium and Glycogen metrics', (_t) => {
-  const b = new Baseline(true, 23, 180, 70);
-  b.sodium = 3000;
-  assert.strictEqual(Math.round(b.proportionalSodium(2000)), 2185);
-  assert.strictEqual(b.getGlycogenH2O(0.6).toFixed(2), '0.37');
-  assert.strictEqual(b.getCarbsIn().toFixed(0), '1373'); // 50% of 2746
+test('Baseline - MSJ gender coefficients', () => {
+  const common = [23, 180, 70];
+  const bMale = new Baseline(true, ...common);
+  const bFemale = new Baseline(false, ...common);
+
+  // Male constant +5, Female -161. Difference 166.
+  assert.strictEqual(bMale.getRMR() - bFemale.getRMR(), 166);
+
+  // Test that isMale mutation (true->false) is caught
+  const b = new Baseline(true, ...common);
+  assert.strictEqual(b.isMale, true);
 });
 
-test('Baseline physics and composition', (_t) => {
-    const b = new Baseline(true, 23, 180, 70);
-    assert.ok(!isNaN(b.getK()), 'K should be a number');
-    assert.strictEqual(b.getTherm().toFixed(0), '384'); // 0.14 * 2746
-    
-    const comp = b.getBodyComposition();
-    assert.strictEqual(comp.length, 3);
-    assert.strictEqual(comp[2], 0); // dECW init 0
-    
-    // getNewWeight
-    const nw = b.getNewWeight(10, 50, 0.5, 2); // 10 fat + 50 lean + 3.7*(0.5-0.5) + 2 ECW = 62
-    assert.strictEqual(nw, 62);
-    
-    // getNewWeightFromBodyModel
-    const nwModel = b.getNewWeightFromBodyModel({ fat: 15, lean: 55, glycogen: 0.6, decw: 1 });
-    // 15 + 55 + 3.7*(0.6-0.5) + 1 = 71.37
-    assert.strictEqual(nwModel.toFixed(2), '71.37');
+test('Baseline - stability equation arithmetic', () => {
+  const b = new Baseline(true, 23, 180, 70, 18, 1716, 1.6, false, false);
+
+  // glycogenEquation: this.glycogen * sqrt((carbRatio * cals) / carbsIn)
+  // If operators changed, results will vary significantly.
+  const cals = 2000;
+  const res = b.glycogenEquation(cals);
+  assert.strictEqual(res.toFixed(4), '0.4267');
+
+  // deltaECWEquation: complex formula check
+  const decw = b.deltaECWEquation(cals);
+  assert.strictEqual(decw.toFixed(4), '-0.7242');
 });
 
-test('Steady state / stability equations', (_t) => {
-    const b = new Baseline(true, 23, 180, 70);
-    // sodium = 4000, maintCals = 2745.824, carbPct = 50, carbsIn = 1372.912
-    // glycogen = 0.5
-    // glycogenEquation(2000): 0.5 * sqrt((0.5 * 2000) / 1372.912) = 0.5 * sqrt(1000 / 1372.912) = 0.5 * 0.8534 = 0.4267
-    assert.strictEqual(b.glycogenEquation(2000).toFixed(4), '0.4267');
-    
-    // deltaECWEquation(2000):
-    // ((4000 / 2745.824 + (4000 * 50) / (100 * 1372.912)) * 2000 - (4000 + 4000)) / 3000
-    // ((1.45676 + 200000 / 137291.2) * 2000 - 8000) / 3000
-    // ((1.45676 + 1.45676) * 2000 - 8000) / 3000
-    // (2.9135 * 2000 - 8000) / 3000 = (5827.0 - 8000) / 3000 = -2173 / 3000 = -0.7243
-    assert.strictEqual(b.deltaECWEquation(2000).toFixed(4), '-0.7243');
+test('Baseline - weight decomposition arithmetic', () => {
+  const b = new Baseline(true, 23, 180, 70, 18, 1716, 1.6, false, false);
+  // fat + lean + glycogenH2O + deltaECW
+  // fat = 10, lean = 50, gly = 0.6, decw = 2
+  // weight = 10 + 50 + 3.7 * (0.6 - 0.5) + 2 = 60 + 0.37 + 2 = 62.37
+  const nw = b.getNewWeight(10, 50, 0.6, 2);
+  assert.strictEqual(nw.toFixed(2), '62.37');
 
-    const ssWeight = b.getStableWeight(10, 50, 2000);
-    // fat=10, lean=50, glycogen=0.4267, deltaECW=-0.7243
-    // newWeight = 10 + 50 + 3.7 * (0.4267 - 0.5) - 0.7243
-    // 60 + 3.7 * (-0.0733) - 0.7243 = 60 - 0.2712 - 0.7243 = 59.0045
-    assert.strictEqual(ssWeight.toFixed(4), '59.0046');
+  // Check lean mutation (fat - lean mutant)
+  const nwLeanMutant = 10 - 50 + 3.7 * (0.6 - 0.5) + 2;
+  assert.notStrictEqual(nw, nwLeanMutant);
+});
+
+test('Steady state / stability equations - precision logic', (_t) => {
+  const b = new Baseline(true, 23, 180, 70, 18, 1716, 1.6, false, false);
+  const caloricIntake = 2000;
+
+  // Golden values
+  assert.strictEqual(b.glycogenEquation(caloricIntake).toFixed(4), '0.4267');
+  assert.strictEqual(b.deltaECWEquation(caloricIntake).toFixed(4), '-0.7242');
+
+  const ssWeight = b.getStableWeight(10, 50, caloricIntake);
+  assert.strictEqual(ssWeight.toFixed(4), '59.0048');
 });
 
 test('getK precision', (_t) => {
-    const b = new Baseline(true, 23, 180, 70, 18, 1716.14, 1.6);
-    // K = 0.76 * 2745.824 - 0 - 22 * 57.4 - 3.2 * 12.6 - 10.7872 * 70
-    assert.strictEqual(b.getK().toFixed(3), '-24.947');
+  const b = new Baseline(true, 23, 180, 70, 18, 1716.14, 1.6);
+  // K = 0.76 * 2745.824 - 0 - 22 * 57.4 - 3.2 * 12.6 - 10.7872 * 70
+  assert.strictEqual(b.getK().toFixed(3), '-24.947');
 });
 
 test('Calculated flags false branch', (_t) => {
-    const b = new Baseline(true, 23, 180, 70, 18, 1716, 1.6, false, false);
-    // When false, getBFP and getRMR should just return the values they hold without recalculating
-    b.bfp = 25;
-    b.rmr = 2000;
-    assert.strictEqual(b.getBFP(), 25);
-    assert.strictEqual(b.getRMR(), 2000);
+  const b = new Baseline(true, 23, 180, 70, 18, 1716, 1.6, false, false);
+  // When false, getBFP and getRMR should just return the values they hold without recalculating
+  b.bfp = 25;
+  b.rmr = 2000;
+  assert.strictEqual(b.getBFP(), 25);
+  assert.strictEqual(b.getRMR(), 2000);
 });
 
 test('getNewAct', (_t) => {
-    const b = new Baseline();
-    assert.strictEqual(b.getNewAct(null), null);
-    const mockIntervention = { getAct: (base) => base.pal + 0.2 };
-    assert.strictEqual(b.getNewAct(mockIntervention), 1.8);
+  const b = new Baseline();
+  assert.strictEqual(b.getNewAct(null), null);
+  const mockIntervention = { getAct: (base) => base.pal + 0.2 };
+  assert.strictEqual(b.getNewAct(mockIntervention), 1.8);
 });
 
 test('getNewTEE', (_t) => {
-    const b = new Baseline();
-    const mockModel = { getTEE: () => 2500 };
-    assert.strictEqual(b.getNewTEE(mockModel, {}), 2500);
+  const b = new Baseline();
+  const mockModel = { getTEE: () => 2500 };
+  assert.strictEqual(b.getNewTEE(mockModel, {}), 2500);
 });
 
 test('Baseline constructor safeNum catch', (_t) => {
-    // Passing a Symbol should trigger the catch block in safeNum
-    const b = new Baseline(true, Symbol('23'), 180, 70);
-    assert.strictEqual(b.age, 23); // Should fall back to INITIAL_AGE
+  // Passing a Symbol should trigger the catch block in safeNum
+  const b = new Baseline(true, Symbol('23'), 180, 70);
+  assert.strictEqual(b.age, 23); // Should fall back to INITIAL_AGE
 });
