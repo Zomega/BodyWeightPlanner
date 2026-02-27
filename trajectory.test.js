@@ -37,17 +37,20 @@ test('DailyParams trajectory - Single intervention WITH ramp', (_t) => {
   // Day 5 should be roughly halfway between maintenance and 2000
   const midpoint = (maint + 2000) / 2;
   assert.ok(Math.abs(traj[5].calories - midpoint) < 50);
+  assert.strictEqual(traj[5].ramped, true);
   assert.strictEqual(traj[10].calories, 2000);
+  assert.strictEqual(traj[10].ramped, false);
 });
 
 test('DailyParams trajectory - Multi-intervention sequence', (_t) => {
   const b = new Baseline(true, 23, 180, 70, 18, 1708, 1.6);
 
-  const int1 = new Intervention(10, 2500, 50, 0, 4000);
+  // Purposefully out of order to check sort
   const int2 = new Intervention(20, 2000, 50, 0, 4000);
+  const int1 = new Intervention(10, 2500, 50, 0, 4000);
   int2.on = true;
 
-  const traj = DailyParams.makeparamtrajectory(b, int1, int2, 30);
+  const traj = DailyParams.makeparamtrajectory(b, int2, int1, 30);
 
   assert.strictEqual(traj[5].calories, b.getMaintCals());
   assert.strictEqual(traj[15].calories, 2500);

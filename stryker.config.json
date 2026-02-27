@@ -1,0 +1,18 @@
+{
+  "$schema": "https://schema.stryker-mutator.io/config/stryker-config.schema.json",
+  "packageManager": "npm",
+  "reporters": ["html", "clear-text", "progress"],
+  "testRunner": "command",
+  "commandRunner": {
+    "command": "node --test"
+  },
+  "mutate": [
+    "baseline.js",
+    "bmi-utils.js",
+    "bodymodel.js",
+    "dailyparams.js",
+    "intervention.js",
+    "pal-calculator.js"
+  ],
+  "coverageAnalysis": "perTest"
+}

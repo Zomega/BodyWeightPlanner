@@ -99,6 +99,15 @@ test('Weight metrics (Fat/Lean)', (_t) => {
   b.bfp = 20;
   assert.strictEqual(b.getFatWeight(), 20);
   assert.strictEqual(b.getLeanWeight(), 80);
+  
+  b.bfp = 30;
+  assert.strictEqual(b.getFatWeight(), 30);
+  assert.strictEqual(b.getLeanWeight(), 70);
+});
+
+test('Baseline default isMale', () => {
+    const b = new Baseline();
+    assert.strictEqual(b.isMale, true);
 });
 
 test('Sodium and Glycogen metrics', (_t) => {

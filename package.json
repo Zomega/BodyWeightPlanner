@@ -9,8 +9,10 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@stryker-mutator/core": "^9.5.1",
     "eslint": "^10.0.2",
     "eslint-config-prettier": "^10.1.8",
+    "fast-check": "^4.5.3",
     "prettier": "^3.8.1"
   }
 }

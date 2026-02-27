@@ -29,18 +29,24 @@ export default class Baseline {
     this.INITIAL_DELTA_E = 0;
     this.INITIAL_DECW = 0;
 
-    this.isMale = isMale;
+    this.isMale = !!isMale;
     this.bfpCalc = bfpCalc;
     this.rmrCalc = rmrCalc;
 
-    this.age = age;
+    this.age = parseFloat(age) || this.INITIAL_AGE;
     this.maximumage = this.MAX_AGE;
 
-    this.height = Math.max(this.MIN_HEIGHT, Math.min(this.MAX_HEIGHT, height));
-    this.weight = Math.max(this.MIN_WEIGHT, weight);
-    this.bfp = Math.max(this.MIN_BFP, Math.min(this.MAX_BFP, bfp));
-    this.rmr = rmr;
-    this.pal = Math.max(this.MIN_PAL, pal);
+    const h = parseFloat(height) || this.INITIAL_HEIGHT;
+    this.height = Math.max(this.MIN_HEIGHT, Math.min(this.MAX_HEIGHT, h));
+    
+    const w = parseFloat(weight) || this.INITIAL_WEIGHT;
+    this.weight = Math.max(this.MIN_WEIGHT, w);
+    
+    const b = parseFloat(bfp) || this.INITIAL_BFP;
+    this.bfp = Math.max(this.MIN_BFP, Math.min(this.MAX_BFP, b));
+    
+    this.rmr = parseFloat(rmr) || this.INITIAL_RMR;
+    this.pal = Math.max(this.MIN_PAL, parseFloat(pal) || this.INITIAL_PAL);
 
     this.carbIntakePct = this.INITIAL_CARB_INTAKE_PCT;
     this.sodium = this.INITIAL_SODIUM;
@@ -76,6 +82,8 @@ export default class Baseline {
         this.rmr = 9.99 * this.weight + (625.0 * this.height) / 100.0 - 4.92 * this.age + 5.0;
       else this.rmr = 9.99 * this.weight + (625.0 * this.height) / 100.0 - 4.92 * this.age - 161.0;
     }
+    // Safeguard against physically impossible MSJ results for extreme edge cases
+    this.rmr = Math.max(500.0, this.rmr);
     return this.rmr;
   }
 

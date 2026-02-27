@@ -57,6 +57,19 @@ test('BodyModel - Utility methods', (_t) => {
     assert.strictEqual(model.getBMI(b).toFixed(2), '24.69');
 });
 
+test('BodyModel - derivatives check', () => {
+    const b = new Baseline(true, 23, 180, 70, 18, 1716, 1.6, false, false);
+    const model = BodyModel.createFromBaseline(b);
+    const params = DailyParams.createFromBaseline(b);
+    
+    const change = model.dt(b, params);
+    // At maintenance, derivatives should be near zero
+    assert.ok(Math.abs(change.df) < 0.0001);
+    assert.ok(Math.abs(change.dl) < 0.0001);
+    assert.ok(Math.abs(change.dg) < 0.0001);
+    assert.ok(Math.abs(change.dDecw) < 0.0001);
+});
+
 test('BodyModel - projectFromBaselineViaIntervention', (_t) => {
     const b = new Baseline(true, 23, 180, 70, 18, 1716, 1.4, false, false);
     const intervention = new Intervention(3000, 1.4);
