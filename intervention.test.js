@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert';
 import Intervention from './intervention.js';
 import Baseline from './baseline.js';
+import BodyModel from './bodymodel.js';
 
 test('Intervention constructor constraints', () => {
     const int = new Intervention(10, -500, 150, -200, 60000);

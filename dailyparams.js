@@ -79,8 +79,7 @@ export default class DailyParams {
         const endDay = upcoming.day;
         const duration = endDay - startDay;
         
-        // If duration is 0 (shouldn't happen with day > i), progress is 1
-        const progress = duration > 0 ? (i - startDay) / duration : 1.0;
+        const progress = (i - startDay) / duration;
 
         const targetCals = upcoming.calories;
         const targetAct = upcoming.getAct(baseline);

@@ -111,3 +111,10 @@ test('DailyParams trajectory - Array-based call', (_t) => {
     const traj2 = DailyParams.makeparamtrajectory(b, [new Intervention(5, 1000)], 10);
     assert.strictEqual(traj2[7].calories, 1000);
 });
+
+test('DailyParams trajectory - No interventions', (_t) => {
+    const b = new Baseline();
+    const traj = DailyParams.makeparamtrajectory(b, 5);
+    assert.strictEqual(traj.length, 5);
+    assert.strictEqual(traj[0].calories, b.getMaintCals());
+});

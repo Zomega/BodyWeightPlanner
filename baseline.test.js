@@ -170,3 +170,9 @@ test('getNewTEE', (_t) => {
     const mockModel = { getTEE: () => 2500 };
     assert.strictEqual(b.getNewTEE(mockModel, {}), 2500);
 });
+
+test('Baseline constructor safeNum catch', (_t) => {
+    // Passing a Symbol should trigger the catch block in safeNum
+    const b = new Baseline(true, Symbol('23'), 180, 70);
+    assert.strictEqual(b.age, 23); // Should fall back to INITIAL_AGE
+});
