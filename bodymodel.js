@@ -1,6 +1,6 @@
 import DailyParams from './dailyparams.js';
 
-class BodyChange {
+export class BodyChange {
   constructor(df = 0, dl = 0, dg = 0, dDecw = 0, dtherm = 0) {
     this.df = df;
     this.dl = dl;
@@ -196,6 +196,7 @@ export default class BodyModel {
       sumdecw += wti * bchange[i].dDecw;
       sumtherm += wti * bchange[i].dtherm;
     }
+    wtsum = wtsum === 0 ? 1 : wtsum;
     return new BodyChange(
       sumf / wtsum,
       suml / wtsum,

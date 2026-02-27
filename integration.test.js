@@ -29,3 +29,19 @@ test('Unachievable goal throws error', (_t) => {
     Intervention.forgoal(b, 20, 10, 0, 0, 0.001);
   }, /Unachievable Goal/);
 });
+
+test('Intervention.forgoal - unachievable due to mincals', (_t) => {
+    const b = new Baseline(true, 23, 180, 70);
+    // Maintenance is ~2746. If we set mincals to 3000, we can never reach a goal weight of 65kg.
+    assert.throws(() => {
+        Intervention.forgoal(b, 65, 180, 0, 3000, 0.001);
+    }, /Unachievable Goal/);
+});
+
+test('Intervention.forgoal - PCXerror trigger', (_t) => {
+    const b = new Baseline(true, 23, 180, 70, 18, 1716, 1.4, false, false);
+    // Very high goal weight and short time might force search into instability
+    assert.throws(() => {
+        Intervention.forgoal(b, 1000, 1, 0, 0, 0.000001);
+    }, /Unachievable Goal/);
+});

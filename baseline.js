@@ -6,7 +6,9 @@ export default class Baseline {
     weight = 70.0,
     bfp = 18.0,
     rmr = 1708.0,
-    pal = 1.6
+    pal = 1.6,
+    bfpCalc = true,
+    rmrCalc = true
   ) {
     this.MAX_AGE = 250.0;
     this.INITIAL_AGE = 23.0;
@@ -28,8 +30,8 @@ export default class Baseline {
     this.INITIAL_DECW = 0;
 
     this.isMale = isMale;
-    this.bfpCalc = true;
-    this.rmrCalc = false;
+    this.bfpCalc = bfpCalc;
+    this.rmrCalc = rmrCalc;
 
     this.age = age;
     this.maximumage = this.MAX_AGE;
@@ -69,7 +71,7 @@ export default class Baseline {
   }
 
   getRMR() {
-    if (!this.rmrCalc) {
+    if (this.rmrCalc) {
       if (this.isMale)
         this.rmr = 9.99 * this.weight + (625.0 * this.height) / 100.0 - 4.92 * this.age + 5.0;
       else this.rmr = 9.99 * this.weight + (625.0 * this.height) / 100.0 - 4.92 * this.age - 161.0;
@@ -131,14 +133,14 @@ export default class Baseline {
   }
 
   getECW() {
-    if (this.isMale) return 0.025 * this.age + 9.57 * this.height + 0.191 * this.weight - 12.4;
-    else return -4.0 + 5.98 * this.height + 0.167 * this.weight;
+    if (this.isMale) return 0.025 * this.age + 9.57 * (this.height / 100.0) + 0.191 * this.weight - 12.4;
+    else return -4.0 + 5.98 * (this.height / 100.0) + 0.167 * this.weight;
   }
 
   getNewECW(days, newWeight) {
     if (this.isMale)
-      return 0.025 * (this.age + days / 365.0) + 9.57 * this.height + 0.191 * newWeight - 12.4;
-    else return -4.0 + 5.98 * this.height + 0.167 * newWeight;
+      return 0.025 * (this.age + days / 365.0) + 9.57 * (this.height / 100.0) + 0.191 * newWeight - 12.4;
+    else return -4.0 + 5.98 * (this.height / 100.0) + 0.167 * newWeight;
   }
 
   proportionalSodium(newCals) {
@@ -150,13 +152,17 @@ export default class Baseline {
   }
 
   setCalculatedBFP(bfpcalc) {
-    this.bfp = this.getBFP();
     this.bfpCalc = bfpcalc;
+    if (this.bfpCalc) {
+      this.bfp = this.getBFP();
+    }
   }
 
   setCalculatedRMR(rmrcalc) {
-    this.rmr = this.getRMR();
     this.rmrCalc = rmrcalc;
+    if (this.rmrCalc) {
+      this.rmr = this.getRMR();
+    }
   }
 
   getGlycogenH2O(newGlycogen) {
