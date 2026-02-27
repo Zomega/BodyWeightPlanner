@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reverse BMI Calculator</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="css/bwp.css" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,400,0,0"
+    />
+  </head>
+  <body>
+    <header class="main-header">
+      <div class="container header-content">
+        <div class="title-area">
+          <h1 id="app-title">Reverse BMI Calculator</h1>
+          <p id="app-subtitle">Determine target mass based on BMI thresholds</p>
+        </div>
+        <div class="header-actions flex-row">
+          <button id="btn-settings" class="icon-btn" title="Settings">
+            <span class="material-symbols-outlined">settings</span>
+          </button>
+          <a href="index.html" class="icon-btn" title="Back to Main Planner">
+            <span class="material-symbols-outlined">home</span>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="container app-grid">
+      <div class="input-column">
+        <section class="card">
+          <div class="section-header">
+            <h2>Input Parameters</h2>
+            <div class="toggle-group card-toggle">
+              <button type="button" id="mode-forward" class="toggle-btn active">Forward</button>
+              <button type="button" id="mode-reverse" class="toggle-btn">Reverse</button>
+            </div>
+          </div>
+
+          <div class="form-group mode-reverse-only hidden">
+            <label for="target-bmi">Target BMI</label>
+            <input type="number" id="target-bmi" value="22" step="0.1" />
+          </div>
+
+          <div class="form-group mode-forward-only">
+            <label for="current-weight">Current Weight (<span class="unit-weight">kg</span>)</label>
+            <input type="number" id="current-weight" value="75" step="0.1" />
+          </div>
+
+          <div class="form-group height-metric">
+            <label for="height">Height (cm)</label>
+            <input type="number" id="height" step="0.1" value="180" />
+          </div>
+          <div class="form-group height-us hidden">
+            <label>Height (ft/in)</label>
+            <div class="dual-input">
+              <input type="number" id="height-ft" placeholder="ft" value="5" />
+              <input type="number" id="height-in" placeholder="in" value="11" />
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="output-column">
+        <!-- 1. Result Display -->
+        <section class="card">
+          <h2 id="result-title">1. Goal Weight Calculation</h2>
+          <div class="results-grid">
+            <div class="result-item highlight">
+              <span id="result-label-primary" class="label">Your Goal Weight:</span>
+              <div class="value-container">
+                <span id="result-weight-primary" class="value">-</span>
+                <span id="result-unit-primary" class="unit">-</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. Analysis -->
+        <section class="card">
+          <div class="section-header">
+            <h2>2. BMI Analysis</h2>
+            <button id="btn-bmi-info" class="icon-btn-secondary" title="Factors affecting BMI accuracy">
+              <span class="material-symbols-outlined">info</span>
+            </button>
+          </div>
+          <div id="bmi-analysis-content">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Category</th>
+                  <th>BMI</th>
+                  <th>Weight (<span class="unit-weight">kg</span>)</th>
+                </tr>
+              </thead>
+              <tbody id="bmi-table-body">
+                <!-- Rows will be injected here -->
+              </tbody>
+            </table>
+            <div id="category-description" class="alert-box" style="margin-top: 1rem"></div>
+          </div>
+        </section>
+
+        <!-- 3. Dietary -->
+        <section class="card">
+          <h2>3. Dietary Recommendation</h2>
+          <div id="dietary-content">
+            <p><strong id="dietary-strategy-title">Dietary Strategy:</strong></p>
+            <div class="results-group" style="margin-bottom: 1.5rem">
+              <div class="result-item">
+                <span class="label">Est. Calories:</span>
+                <div class="value-container">
+                  <span id="rec-cals" class="value">-</span>
+                  <span class="unit">kcal/day</span>
+                </div>
+              </div>
+              <div class="result-item">
+                <span class="label">Protein Target:</span>
+                <div class="value-container">
+                  <span id="rec-protein" class="value">-</span>
+                  <span class="unit">g/day</span>
+                </div>
+              </div>
+            </div>
+            <h4>Macro Breakdown</h4>
+            <div class="results-group" style="margin-bottom: 1rem">
+              <div class="result-item">
+                <span class="label">Carbs: <span id="macro-c-pct">45</span>%</span>
+                <span id="macro-carbs" class="value">-</span><span class="unit">g</span>
+              </div>
+              <div class="result-item">
+                <span class="label">Protein: <span id="macro-p-pct">25</span>%</span>
+                <span id="macro-protein" class="value">-</span><span class="unit">g</span>
+              </div>
+              <div class="result-item">
+                <span class="label">Fat: <span id="macro-f-pct">30</span>%</span>
+                <span id="macro-fat" class="value">-</span><span class="unit">g</span>
+              </div>
+            </div>
+            <div id="dietary-tip" class="alert-box hidden" style="background: #e1f5fe; color: #01579b;"></div>
+          </div>
+        </section>
+
+        <!-- 4. Exercise -->
+        <section class="card">
+          <h2>4. Exercise Recommendation</h2>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Frequency</th>
+                <th>Activities</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Resistance</strong></td>
+                <td>2–3 days/wk</td>
+                <td class="help-text">Bodyweight, bands, light weights.</td>
+              </tr>
+              <tr>
+                <td><strong>Cardio</strong></td>
+                <td>3–5 days/wk</td>
+                <td class="help-text">Walking, swimming, recumbent bike.</td>
+              </tr>
+              <tr>
+                <td><strong>NEAT</strong></td>
+                <td>Every Day</td>
+                <td class="help-text">Chores, stairs, daily movement.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- 5. Summary -->
+        <section class="card highlight-card" style="background: #2c3e50; color: white">
+          <h2>5. Summary</h2>
+          <div id="summary-content"></div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="main-footer">
+      <div class="container">
+        <p><a href="index.html">Back to Main Planner</a></p>
+      </div>
+    </footer>
+
+    <dialog id="settings-modal" class="modal">
+      <form method="dialog">
+        <div class="modal-header">
+          <h3>Application Settings</h3>
+          <button type="button" class="close-modal-btn" title="Close">&times;</button>
+        </div>
+
+        <div class="settings-section">
+          <h4>Preferences</h4>
+          <div class="unit-toggle-container modal-toggle-row">
+            <label class="toggle-label">System Units:</label>
+            <div class="toggle-group card-toggle">
+              <button type="button" id="unit-metric" class="toggle-btn active">Metric</button>
+              <button type="button" id="unit-us" class="toggle-btn">U.S.</button>
+            </div>
+          </div>
+          <div class="unit-toggle-container modal-toggle-row">
+            <label class="toggle-label">Energy Units:</label>
+            <div class="toggle-group card-toggle">
+              <button type="button" id="unit-cals" class="toggle-btn active">Calories</button>
+              <button type="button" id="unit-kj" class="toggle-btn">Kilojoules</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h4>Privacy & Data</h4>
+          <p class="help-text">
+            Your data is private. All information entered is stored
+            <strong>only on your device</strong> using browser local storage. No data is transmitted
+            to or stored on any external servers.
+          </p>
+          <div class="flex-row flex-wrap" style="gap: 1rem;">
+            <button type="button" id="btn-export" class="action-btn small">
+              Export Data (JSON)
+            </button>
+            <button type="button" id="btn-import-trigger" class="action-btn small">
+              Import Data (JSON)
+            </button>
+            <input type="file" id="import-file" accept=".json" style="display: none;" />
+            <button type="button" id="btn-reset-all" class="action-btn danger small">
+              Reset All Data & Settings
+            </button>
+          </div>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="bmi-info-modal" class="modal">
+      <form method="dialog">
+        <div class="modal-header">
+          <h3>Technical Limitations of BMI</h3>
+          <button type="button" class="close-modal-btn" title="Close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="help-text">BMI is a proxy measurement for body fatness based on mass and height. It does not directly measure body composition and has several known technical limitations:</p>
+          <ul class="help-text">
+            <li><strong>Composition Bias:</strong> BMI does not differentiate between lean muscle mass and adipose tissue. High-performance athletes may be categorized as overweight or obese despite low body fat.</li>
+            <li><strong>Age-Related Variance:</strong> Bone density and muscle mass loss in older adults can skew results. Research indicates that higher BMI ranges (25–27) may be associated with lower mortality in senior populations.</li>
+            <li><strong>Scaling Issues:</strong> The weight-to-height squared formula may over-categorize taller individuals and under-categorize shorter individuals.</li>
+            <li><strong>Ethnic Distribution:</strong> Body fat distribution and metabolic risk thresholds vary significantly across different ethnic backgrounds at identical BMI levels.</li>
+          </ul>
+        </div>
+        <div class="modal-actions">
+          <button type="submit" class="btn-primary">Acknowledge</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script type="module" src="bmi-calculator.js"></script>
+  </body>
+</html>

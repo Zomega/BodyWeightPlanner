@@ -617,6 +617,28 @@ class App {
 
     document.getElementById('btn-export-csv')?.addEventListener('click', () => this.exportCSV());
 
+    document.getElementById('btn-export')?.addEventListener('click', () => {
+      StorageService.exportToJSON();
+    });
+
+    document.getElementById('btn-import-trigger')?.addEventListener('click', () => {
+      document.getElementById('import-file')?.click();
+    });
+
+    document.getElementById('import-file')?.addEventListener('change', async (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      if (confirm('Importing will overwrite your current settings. Continue?')) {
+        try {
+          await StorageService.importFromJSON(file);
+          window.location.reload();
+        } catch (err) {
+          alert('Failed to import data: ' + err.message);
+        }
+      }
+    });
+
     document.getElementById('btn-settings')?.addEventListener('click', () => {
       document.getElementById('settings-modal')?.showModal();
     });
@@ -792,8 +814,6 @@ class App {
     }
 
     const data = {
-      isMetric: this.isMetric,
-      isCalories: this.isCalories,
       showAdvanced: this.showAdvanced,
       palMode: this.palMode,
       palActivities: palActivities,
@@ -816,15 +836,18 @@ class App {
   }
 
   loadFromLocalStorage() {
+    this.loadSharedSettings();
     const data = StorageService.load();
-    if (!data) return;
+    if (!data) {
+      this.applyUnitUI();
+      this.applyEnergyUnitUI();
+      return;
+    }
     try {
-      if (data.isMetric !== undefined) {
-        this.isMetric = data.isMetric;
+      if (this.isMetric !== undefined) {
         this.applyUnitUI();
       }
-      if (data.isCalories !== undefined) {
-        this.isCalories = data.isCalories;
+      if (this.isCalories !== undefined) {
         this.applyEnergyUnitUI();
       }
       if (data.showAdvanced !== undefined) {
@@ -936,6 +959,19 @@ class App {
     this.updateResults();
   }
 
+  loadSharedSettings() {
+    const settings = StorageService.loadSettings();
+    if (settings.isMetric !== undefined) this.isMetric = settings.isMetric;
+    if (settings.isCalories !== undefined) this.isCalories = settings.isCalories;
+  }
+
+  saveSharedSettings() {
+    StorageService.saveSettings({
+      isMetric: this.isMetric,
+      isCalories: this.isCalories,
+    });
+  }
+
   setUnits(isMetric) {
     if (this.isMetric === isMetric) return;
     const currentWeight = this.getWeightKg();
@@ -961,6 +997,7 @@ class App {
       }
     }
     this.updateResults();
+    this.saveSharedSettings();
     this.saveToLocalStorage();
   }
 
@@ -982,6 +1019,7 @@ class App {
 
     this.applyEnergyUnitUI();
     this.updateResults();
+    this.saveSharedSettings();
     this.saveToLocalStorage();
   }
 
@@ -1347,7 +1385,7 @@ class App {
       const unit = this.isMetric ? 'kg' : 'lbs';
       const low = this.isMetric ? range.low : Math.round(range.low * 2.20462);
       const high = this.isMetric ? range.high : Math.round(range.high * 2.20462);
-      alert.textContent = `BMI outside healthy range (${Math.round(low)}-${Math.round(
+      alert.textContent = `Calculated BMI is outside standard reference range (${Math.round(low)}–${Math.round(
         high
       )} ${unit}).`;
     } else {
