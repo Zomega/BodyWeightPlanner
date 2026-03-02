@@ -22,77 +22,89 @@ export default class BodyModel {
     this.therm = therm;
   }
 
-  static createFromBaseline(baseline) {
+  static createFromPhysState(physState) {
     return new BodyModel(
-      baseline.getFatWeight(),
-      baseline.getLeanWeight(),
-      baseline.glycogen,
-      baseline.dECW,
-      baseline.getTherm()
+      physState.initialFat,
+      physState.initialLean,
+      physState.initialGlycogen,
+      0, // decw usually starts at 0 relative to baseline
+      physState.initialTherm
     );
   }
 
-  static projectFromBaseline(baseline, dailyParams, simlength) {
-    let loop = BodyModel.createFromBaseline(baseline);
+  // Deprecated: use createFromPhysState
+  static createFromBaseline(baseline) {
+    return this.createFromPhysState(Physiology.createPhysiologicalState(baseline));
+  }
+
+  static projectFromPhysState(physState, dailyParams, simlength) {
+    let loop = BodyModel.createFromPhysState(physState);
     for (let i = 0; i < simlength; i++) {
-      loop = BodyModel.RungeKatta(loop, baseline, dailyParams);
+      loop = BodyModel.RungeKatta(loop, physState, dailyParams);
     }
     return loop;
   }
 
-  static projectFromBaselineViaIntervention(baseline, intervention, simlength) {
-    const dailyParams = DailyParams.createFromIntervention(intervention, baseline);
-    return BodyModel.projectFromBaseline(baseline, dailyParams, simlength);
+  // Deprecated: use projectFromPhysState
+  static projectFromBaseline(baseline, dailyParams, simlength) {
+    return this.projectFromPhysState(Physiology.createPhysiologicalState(baseline), dailyParams, simlength);
   }
 
-  getWeight(baseline) {
-    return this.fat + this.lean + baseline.getGlycogenH2O(this.glycogen) + this.decw;
+  static projectFromBaselineViaIntervention(baseline, intervention, simlength) {
+    const physState = Physiology.createPhysiologicalState(baseline);
+    const dailyParams = DailyParams.createFromIntervention(intervention, baseline);
+    return BodyModel.projectFromPhysState(physState, dailyParams, simlength);
+  }
+
+  getWeight(physState) {
+    return Physiology.calculateCurrentWeight(this.fat, this.lean, this.glycogen, this.decw, physState);
   }
 
   getapproxWeight() {
     return this.fat + this.lean + this.decw;
   }
 
-  getFatFree(baseline) {
-    return this.getWeight(baseline) - this.fat;
+  getFatFree(physState) {
+    return this.getWeight(physState) - this.fat;
   }
 
-  getFatPercent(baseline) {
-    return (this.fat / this.getWeight(baseline)) * 100.0;
+  getFatPercent(physState) {
+    const weight = this.getWeight(physState);
+    return weight > 0 ? (this.fat / weight) * 100.0 : 0;
   }
 
-  getBMI(baseline) {
-    return baseline.getNewBMI(this.getWeight(baseline));
+  getBMI(physState) {
+    return Physiology.calculateBMI(this.getWeight(physState), physState.height);
   }
 
-  dt(baseline, dailyParams) {
-    const df = this.dfdt(baseline, dailyParams);
-    const dl = this.dldt(baseline, dailyParams);
-    const dg = this.dgdt(baseline, dailyParams);
-    const dDecw = this.dDecwdt(baseline, dailyParams);
-    const dtherm = this.dthermdt(baseline, dailyParams);
+  dt(physState, dailyParams) {
+    const df = this.dfdt(physState, dailyParams);
+    const dl = this.dldt(physState, dailyParams);
+    const dg = this.dgdt(physState, dailyParams);
+    const dDecw = this.dDecwdt(physState, dailyParams);
+    const dtherm = this.dthermdt(physState, dailyParams);
 
     return new BodyChange(df, dl, dg, dDecw, dtherm);
   }
 
-  static RungeKatta(bodyModel, baseline, dailyParams) {
-    const dt1 = bodyModel.dt(baseline, dailyParams);
+  static RungeKatta(bodyModel, physState, dailyParams) {
+    const dt1 = bodyModel.dt(physState, dailyParams);
     const b2 = bodyModel.addchange(dt1, 0.5);
-    const dt2 = b2.dt(baseline, dailyParams);
+    const dt2 = b2.dt(physState, dailyParams);
     const b3 = bodyModel.addchange(dt2, 0.5);
-    const dt3 = b3.dt(baseline, dailyParams);
+    const dt3 = b3.dt(physState, dailyParams);
     const b4 = bodyModel.addchange(dt3, 1.0);
-    const dt4 = b4.dt(baseline, dailyParams);
+    const dt4 = b4.dt(physState, dailyParams);
     const finaldt = bodyModel.avgdt_weighted([1, 2, 2, 1], [dt1, dt2, dt3, dt4]);
     const finalstate = bodyModel.addchange(finaldt, 1.0);
     return finalstate;
   }
 
-  getTEE(baseline, dailyParams) {
+  getTEE(physState, dailyParams) {
     const p = this.getp();
     const calin = dailyParams.calories;
-    const carbflux = this.carbflux(baseline, dailyParams);
-    const Expend = this.getExpend(baseline, dailyParams);
+    const carbflux = this.carbflux(physState, dailyParams);
+    const Expend = this.getExpend(physState, dailyParams);
     
     const p_n = ((1.0 - p) * Hall.THERMIC_EFFECT_CARBS) / Hall.ENERGY_DENSITY_FAT + (p * Hall.THERMIC_EFFECT_PROTEIN) / Hall.ENERGY_DENSITY_LEAN;
     const p_d = 1.0 + (p * Hall.THERMIC_EFFECT_PROTEIN) / Hall.ENERGY_DENSITY_LEAN + ((1.0 - p) * Hall.THERMIC_EFFECT_CARBS) / Hall.ENERGY_DENSITY_FAT;
@@ -100,11 +112,11 @@ export default class BodyModel {
     return (Expend + (calin - carbflux) * p_n) / p_d;
   }
 
-  getExpend(baseline, dailyParams) {
+  getExpend(physState, dailyParams) {
     const TEF = Hall.THERMIC_EFFECT_FOOD * dailyParams.calories;
-    const weight = baseline.getNewWeightFromBodyModel(this);
+    const weight = this.getWeight(physState);
     return (
-      baseline.getK() +
+      physState.kFactor +
       Hall.LEAN_METABOLIC_RATE * this.lean +
       Hall.FAT_METABOLIC_RATE * this.fat +
       dailyParams.actparam * weight +
@@ -117,69 +129,80 @@ export default class BodyModel {
     return Physiology.calculateForbesP(this.fat);
   }
 
-  carbflux(baseline, dailyParams) {
-    const k_carb = baseline.getCarbsIn() / Math.pow(baseline.glycogen, 2.0);
+  carbflux(physState, dailyParams) {
+    const k_carb = physState.carbsIn / Math.pow(physState.initialGlycogen, 2.0);
     return dailyParams.getCarbIntake() - k_carb * Math.pow(this.glycogen, 2.0);
   }
 
-  Na_imbal(baseline, dailyParams) {
+  Na_imbal(physState, dailyParams) {
     return (
       dailyParams.sodium -
-      baseline.sodium -
+      physState.initialSodium -
       Hall.SODIUM_WATER_COEFF * this.decw -
-      Hall.SODIUM_CARB_COEFF * (1.0 - dailyParams.getCarbIntake() / baseline.getCarbsIn())
+      Hall.SODIUM_CARB_COEFF * (1.0 - dailyParams.getCarbIntake() / physState.carbsIn)
     );
   }
 
-  dfdt(baseline, dailyParams) {
+  dfdt(physState, dailyParams) {
     return (
       ((1.0 - this.getp()) *
         (dailyParams.calories -
-          this.getTEE(baseline, dailyParams) -
-          this.carbflux(baseline, dailyParams))) /
+          this.getTEE(physState, dailyParams) -
+          this.carbflux(physState, dailyParams))) /
       Hall.ENERGY_DENSITY_FAT
     );
   }
 
-  dldt(baseline, dailyParams) {
+  dldt(physState, dailyParams) {
     return (
       (this.getp() *
         (dailyParams.calories -
-          this.getTEE(baseline, dailyParams) -
-          this.carbflux(baseline, dailyParams))) /
+          this.getTEE(physState, dailyParams) -
+          this.carbflux(physState, dailyParams))) /
       Hall.ENERGY_DENSITY_LEAN
     );
   }
 
-  dgdt(baseline, dailyParams) {
-    return this.carbflux(baseline, dailyParams) / Hall.ENERGY_DENSITY_GLYCOGEN;
+  dgdt(physState, dailyParams) {
+    return this.carbflux(physState, dailyParams) / Hall.ENERGY_DENSITY_GLYCOGEN;
   }
 
-  dDecwdt(baseline, dailyParams) {
-    return this.Na_imbal(baseline, dailyParams) / Hall.ECW_SODIUM_CONC;
+  dDecwdt(physState, dailyParams) {
+    return this.Na_imbal(physState, dailyParams) / Hall.ECW_SODIUM_CONC;
   }
 
-  dthermdt(baseline, dailyParams) {
+  dthermdt(physState, dailyParams) {
     return (Hall.THERM_COEFF * dailyParams.calories - this.therm) / Hall.THERM_TIME_CONSTANT;
   }
 
   addchange(bchange, tstep) {
     return new BodyModel(
-      this.fat + tstep * bchange.df,
-      this.lean + tstep * bchange.dl,
-      this.glycogen + tstep * bchange.dg,
-      this.decw + tstep * bchange.dDecw,
-      this.therm + tstep * bchange.dtherm
+      Math.max(0, this.fat + tstep * bchange.df),
+      Math.max(0, this.lean + tstep * bchange.dl),
+      Math.max(0, this.glycogen + tstep * bchange.dg),
+      this.decw + tstep * bchange.dDecw, // decw can be negative relative to baseline
+      Math.max(0, this.therm + tstep * bchange.dtherm)
     );
   }
 
-  cals4balance(baseline, act) {
-    const weight = this.getWeight(baseline);
-    const Expend_no_food = baseline.getK() + Hall.LEAN_METABOLIC_RATE * this.lean + Hall.FAT_METABOLIC_RATE * this.fat + act * weight;
+  cals4balance(physState, act) {
+    const weight = this.getWeight(physState);
+    const Expend_no_food =
+      physState.kFactor +
+      Hall.LEAN_METABOLIC_RATE * this.lean +
+      Hall.FAT_METABOLIC_RATE * this.fat +
+      act * weight;
     const p = this.getp();
-    const p_d = 1.0 + (p * Hall.THERMIC_EFFECT_PROTEIN) / Hall.ENERGY_DENSITY_LEAN + ((1.0 - p) * Hall.THERMIC_EFFECT_CARBS) / Hall.ENERGY_DENSITY_FAT;
-    const p_n = ((1.0 - p) * Hall.THERMIC_EFFECT_CARBS) / Hall.ENERGY_DENSITY_FAT + (p * Hall.THERMIC_EFFECT_PROTEIN) / Hall.ENERGY_DENSITY_LEAN;
-    return Expend_no_food / (p_d - p_n - Hall.CALS_BALANCE_EFF);
+    const p_d =
+      1.0 +
+      (p * Hall.THERMIC_EFFECT_PROTEIN) / Hall.ENERGY_DENSITY_LEAN +
+      ((1.0 - p) * Hall.THERMIC_EFFECT_CARBS) / Hall.ENERGY_DENSITY_FAT;
+    const p_n =
+      ((1.0 - p) * Hall.THERMIC_EFFECT_CARBS) / Hall.ENERGY_DENSITY_FAT +
+      (p * Hall.THERMIC_EFFECT_PROTEIN) / Hall.ENERGY_DENSITY_LEAN;
+    // At equilibrium, Intake = TEE = (Expend_no_food + 0.14*Intake + 0.1*Intake + Intake*p_n) / p_d
+    // Intake * (p_d - p_n - 0.14 - 0.1) = Expend_no_food
+    return Expend_no_food / (p_d - p_n - Hall.THERM_COEFF - Hall.THERMIC_EFFECT_FOOD);
   }
 
   avgdt_weighted(wt, bchange) {

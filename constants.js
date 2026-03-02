@@ -68,6 +68,22 @@ export const Limits = {
   MAX_SODIUM: 50000.0,
 };
 
+// Property-Based Testing Domains
+export const Domains = {
+  HUMAN: {
+    AGE: { min: 1, max: 120 },
+    HEIGHT: { min: 50, max: 250 },
+    WEIGHT: { min: 20, max: 500 },
+    CALORIES: { min: 500, max: 10000 },
+  },
+  ROBUSTNESS: {
+    AGE: { min: -10, max: 1000 },
+    HEIGHT: { min: -10, max: 1000 },
+    WEIGHT: { min: -10, max: 5000 },
+    CALORIES: { min: -1000, max: 100000 },
+  },
+};
+
 // Defaults
 export const Defaults = {
   AGE: 23.0,

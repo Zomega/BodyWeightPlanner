@@ -9,29 +9,34 @@ This document tracks the architectural transition from object-oriented state man
   - **PBT Goal:** Test formula stability and monotonicity (e.g., "Increasing weight never decreases RMR") without object instantiation.
   - **Status:** Completed with 100% line coverage and magic constants extracted to `constants.js`.
 
-- [ ] **Define PhysiologicalState POJO**
+- [x] **Define PhysiologicalState POJO**
   - Create a structured data definition for the constants derived from a baseline.
   - Refactor `Baseline` to act as a "Factory" or "Parser" that returns this state object.
   - **PBT Goal:** Enable the generation of "Arbitrary Humans" by injecting random but mathematically valid state objects into the `BodyModel`.
+  - **Status:** Completed. `PhysiologicalState` is returned by `Baseline.toPhysiologicalState()` and used by `BodyModel`.
 
 ## Phase 2: Algorithm Abstraction
-- [ ] **Extract Generic Solver Utility**
+- [x] **Extract Generic Solver Utility**
   - Remove the binary search logic from `Intervention.forgoal`.
   - Create a reusable `Solver.binarySearch(fn, target, range, epsilon)` utility.
   - **PBT Goal:** Verify the solver's correctness using simple monotonic functions before applying it to the body weight model.
+  - **Status:** Completed. `Solver` utility created and verified with unit tests. Integration into `Intervention.js` pending.
 
-- [ ] **Implement Parameter Interpolators**
+- [x] **Implement Parameter Interpolators**
   - Refactor `DailyParams.makeparamtrajectory` to use interpolator functions instead of imperative loops.
   - Represent a trajectory as a collection of `(time) => Params` functions.
   - **PBT Goal:** Verify the "Linearity Property" (e.g., "Day 5 must be exactly the midpoint of a Day 0 to Day 10 ramp").
+  - **Status:** Completed. Trajectory logic refactored to use functional `getParamsAt(day)` approach.
 
 ## Phase 3: Domain & Robustness
-- [ ] **Define Explicit Data Domains**
+- [x] **Define Explicit Data Domains**
   - Create a centralized configuration for input ranges (e.g., `HUMAN_AGE_RANGE`, `PHYSICAL_MAX_WEIGHT`).
   - Update `fast-check` properties to use these standard generators.
   - **PBT Goal:** Systematically verify both "Physiological Validity" (Real humans) and "Numerical Robustness" (Garbage data/Extreme values).
+  - **Status:** Completed. Domains defined in `constants.js` and verified in `properties.test.js`.
 
-- [ ] **Standardize Clamping and Safety**
+- [x] **Standardize Clamping and Safety**
   - Audit all `Math.max(0, ...)` and `safeNum` calls.
   - Move safety logic into the functional layer.
   - **PBT Goal:** Prove that the simulation can never produce `NaN` or `Infinity` regardless of input severity.
+  - **Status:** Completed. Clamping added to `physiology.js` and `bodymodel.js` to ensure 100% stability.

@@ -3,6 +3,7 @@ import assert from 'node:assert';
 import Baseline from './baseline.js';
 import BodyModel, { BodyChange } from './bodymodel.js';
 import DailyParams from './dailyparams.js';
+import Intervention from './intervention.js';
 import * as Physiology from './physiology.js';
 import { Hall } from './constants.js';
 
@@ -10,19 +11,20 @@ const createSimBaseline = () => new Baseline(true, 23, 180, 100, 30, 2000, 1.4);
 
 test('BodyModel simulation - Monotonicity under deficit', (_t) => {
   const b = createSimBaseline();
-  let model = BodyModel.createFromBaseline(b);
+  const physState = b.toPhysiologicalState();
+  let model = BodyModel.createFromPhysState(physState);
 
   // Calculate cals for balance
-  const equilibriumCals = model.cals4balance(b, b.getActivityParam());
+  const equilibriumCals = model.cals4balance(physState, b.getActivityParam());
   const deficitCals = equilibriumCals - 500;
   const params = new DailyParams(deficitCals, 50, 4000, b.getActivityParam());
 
-  let lastWeight = model.getWeight(b);
+  let lastWeight = model.getWeight(physState);
 
   // Simulate 10 days and verify weight is strictly decreasing (monotonicity)
   for (let i = 0; i < 10; i++) {
-    model = BodyModel.RungeKatta(model, b, params);
-    const currentWeight = model.getWeight(b);
+    model = BodyModel.RungeKatta(model, physState, params);
+    const currentWeight = model.getWeight(physState);
     assert.ok(currentWeight < lastWeight, `Weight should decrease at day ${i + 1}`);
     lastWeight = currentWeight;
   }
@@ -30,13 +32,14 @@ test('BodyModel simulation - Monotonicity under deficit', (_t) => {
 
 test('BodyModel simulation - Stability at equilibrium', (_t) => {
   const b = createSimBaseline();
-  const model = BodyModel.createFromBaseline(b);
+  const physState = b.toPhysiologicalState();
+  const model = BodyModel.createFromPhysState(physState);
 
-  const equilibriumCals = model.cals4balance(b, b.getActivityParam());
+  const equilibriumCals = model.cals4balance(physState, b.getActivityParam());
   const params = new DailyParams(equilibriumCals, b.carbIntakePct, b.sodium, b.getActivityParam());
 
   // At equilibrium, the derivatives should be zero
-  const change = model.dt(b, params);
+  const change = model.dt(physState, params);
 
   const EPSILON = 1e-10;
   assert.ok(Math.abs(change.df) < EPSILON, 'Fat change should be zero at equilibrium');
@@ -45,17 +48,18 @@ test('BodyModel simulation - Stability at equilibrium', (_t) => {
 
 test('BodyModel - Utility invariants', (_t) => {
   const b = new Baseline(true, 23, 180, 80, 20, 1716, 1.6, false, false);
+  const physState = b.toPhysiologicalState();
   const fat = 16;
   const lean = 64;
   const decw = 2.5;
   const model = new BodyModel(fat, lean, 0.5, decw, 384);
 
-  const weight = model.getWeight(b);
+  const weight = model.getWeight(physState);
 
   // Invariant: weight = fat + lean + glycogenH2O + decw
   // Invariant: FatFree = weight - fat
-  assert.strictEqual(model.getFatFree(b), weight - fat);
-  assert.strictEqual(model.getFatPercent(b), (fat / weight) * 100.0);
+  assert.strictEqual(model.getFatFree(physState), weight - fat);
+  assert.strictEqual(model.getFatPercent(physState), (fat / weight) * 100.0);
 
   // Invariant: approxWeight = fat + lean + decw
   assert.strictEqual(model.getapproxWeight(), fat + lean + decw);
@@ -63,41 +67,43 @@ test('BodyModel - Utility invariants', (_t) => {
 
 test('BodyModel - BMI and weight invariants', () => {
   const b = createSimBaseline();
-  const model = BodyModel.createFromBaseline(b);
+  const physState = b.toPhysiologicalState();
+  const model = BodyModel.createFromPhysState(physState);
 
   // Test getBMI explicitly
-  assert.strictEqual(model.getBMI(b), b.getBMI());
+  assert.strictEqual(model.getBMI(physState), b.getBMI());
 
   // Test getWeight sign for decw
   const modelWithDecw = new BodyModel(10, 50, 0.5, 5, 0);
-  // Weight = 10 + 50 + 0 + 5 = 65. If - decw, result 55.
-  assert.strictEqual(modelWithDecw.getWeight(b), 65);
+  // Weight = 10 + 50 + 0 + 5 = 65
+  assert.strictEqual(modelWithDecw.getWeight(physState), 65);
 });
 
 test('BodyModel - simulation loop boundaries', () => {
   const b = createSimBaseline();
+  const physState = b.toPhysiologicalState();
   const params = DailyParams.createFromBaseline(b);
 
   // 1 day should have EXACTLY 1 step of change.
-  // If mutant is <=, it will do 2 steps.
-  const start = BodyModel.createFromBaseline(b);
-  const end = BodyModel.projectFromBaseline(b, params, 1);
+  const start = BodyModel.createFromPhysState(physState);
+  const end = BodyModel.projectFromPhysState(physState, params, 1);
 
-  const step1 = BodyModel.RungeKatta(start, b, params);
+  const step1 = BodyModel.RungeKatta(start, physState, params);
   assert.strictEqual(end.fat, step1.fat, '1-day simulation should equal exactly 1 RungeKatta step');
 });
 
 test('BodyModel - physics operator verification', () => {
   const b = new Baseline(true, 23, 180, 70, 18, 1716, 1.6, false, false);
-  const model = BodyModel.createFromBaseline(b);
+  const physState = b.toPhysiologicalState();
+  const model = BodyModel.createFromPhysState(physState);
   const params = new DailyParams(2000, 50, 4000, 10);
 
-  // Na_imbal: sodium - baseline.sodium - Hall.SODIUM_WATER_COEFF * decw - Hall.SODIUM_CARB_COEFF * (1 - carbRatio)
-  assert.ok(model.Na_imbal(b, params) < 0);
+  // Na_imbal check
+  assert.ok(model.Na_imbal(physState, params) < 0);
 
-  // dfdt and dldt: check they use the same base (cals - TEE - carbflux)
-  const df = model.dfdt(b, params);
-  const dl = model.dldt(b, params);
+  // dfdt and dldt
+  const df = model.dfdt(physState, params);
+  const dl = model.dldt(physState, params);
   assert.ok(df < 0 && dl < 0, 'Deficit should lead to fat and lean loss');
 
   // Verify K factor default param (deltaE)
@@ -124,7 +130,6 @@ test('BodyModel - avgdt_weighted array mutants', () => {
   assert.strictEqual(avg.df, 1, 'Empty weight array should default to 1');
 
   // Test wtsum = 0 case
-  // Note: implementation has "wt[i] || 1", so passing [0] actually uses weight 1.
   const avgZero = model.avgdt_weighted([0], [change]);
   assert.strictEqual(avgZero.df, 1, 'Weight of 0 should fall back to 1');
 });
@@ -145,6 +150,24 @@ test('BodyModel - avgdt_weighted logical boundaries', (_t) => {
   // Negative weight should be treated as 1
   const negAvg = model.avgdt_weighted([-10], [change1]);
   assert.strictEqual(negAvg.df, 1);
+});
+
+test('BodyModel - legacy method wrappers', () => {
+  const b = createSimBaseline();
+  const params = DailyParams.createFromBaseline(b);
+  
+  // Legacy createFromBaseline
+  const modelLegacy = BodyModel.createFromBaseline(b);
+  assert.strictEqual(modelLegacy.fat, b.getFatWeight());
+  
+  // Legacy projectFromBaseline
+  const modelProj = BodyModel.projectFromBaseline(b, params, 5);
+  assert.ok(modelProj.fat > 0);
+  
+  // projectFromBaselineViaIntervention
+  const inter = new Intervention(1, 2000);
+  const modelInter = BodyModel.projectFromBaselineViaIntervention(b, inter, 5);
+  assert.ok(modelInter instanceof BodyModel);
 });
 
 test('BodyModel - RK4 weights invariant', () => {

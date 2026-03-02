@@ -31,8 +31,7 @@ export default class DailyParams {
   }
 
   /**
-   * Creates a trajectory of daily parameters based on an array of interventions.
-   * Interventions should be sorted by day.
+   * Refactored trajectory logic using functional interpolators.
    */
   static makeparamtrajectory(baseline, ...args) {
     let interventions;
@@ -46,57 +45,62 @@ export default class DailyParams {
       interventions = args;
     }
 
-    const paramtraj = [];
     const activeInterventions = interventions
       .filter((int) => int && int.on)
       .sort((a, b) => a.day - b.day);
 
-    let currentParams = DailyParams.createFromBaseline(baseline);
-    let lastDay = 0;
-    let lastCalories = baseline.getMaintCals();
-    let lastAct = baseline.getActivityParam();
-    let lastCarb = baseline.carbIntakePct;
-    let lastSodium = baseline.sodium;
+    const baselineParams = DailyParams.createFromBaseline(baseline);
 
-    for (let i = 0; i < simlength; i++) {
-      const nextInt = activeInterventions.find((int) => int.day === i);
-
-      if (nextInt) {
-        currentParams = DailyParams.createFromIntervention(nextInt, baseline);
-        lastCalories = currentParams.calories;
-        lastAct = currentParams.actparam;
-        lastCarb = currentParams.carbpercent;
-        lastSodium = currentParams.sodium;
-        lastDay = i;
+    const getParamsAt = (day) => {
+      // Find the current active intervention (the one at or most recently before this day)
+      // Note: We search backwards through sorted interventions.
+      let currentInt = null;
+      for (let j = activeInterventions.length - 1; j >= 0; j--) {
+        if (activeInterventions[j].day <= day) {
+          currentInt = activeInterventions[j];
+          break;
+        }
       }
 
-      // Check if we are currently in a ramp period for the 'next' upcoming intervention
-      const upcoming = activeInterventions.find((int) => int.day > i && int.rampon);
+      const currentParams = currentInt
+        ? DailyParams.createFromIntervention(currentInt, baseline)
+        : baselineParams;
 
-      // We only ramp if there was a previous point to ramp FROM
-      if (upcoming && i >= lastDay) {
-        const startDay = lastDay;
-        const endDay = upcoming.day;
-        const duration = endDay - startDay;
+      // Check for upcoming ramp
+      const upcoming = activeInterventions.find((int) => int.day > day && int.rampon);
 
-        const progress = (i - startDay) / duration;
+      if (upcoming) {
+        // Find the start of this ramp (either the current intervention's day or day 0)
+        const startDay = currentInt ? currentInt.day : 0;
+        const duration = upcoming.day - startDay;
+        const progress = (day - startDay) / duration;
+
+        const startCals = currentParams.calories;
+        const startAct = currentParams.actparam;
+        const startCarb = currentParams.carbpercent;
+        const startSodium = currentParams.sodium;
 
         const targetCals = upcoming.calories;
         const targetAct = upcoming.getAct(baseline);
         const targetCarb = upcoming.carbinpercent;
         const targetSodium = upcoming.sodium;
 
-        const dcal = lastCalories + progress * (targetCals - lastCalories);
-        const dact = lastAct + progress * (targetAct - lastAct);
-        const dcarb = lastCarb + progress * (targetCarb - lastCarb);
-        const dsodium = lastSodium + progress * (targetSodium - lastSodium);
+        const dcal = startCals + progress * (targetCals - startCals);
+        const dact = startAct + progress * (targetAct - startAct);
+        const dcarb = startCarb + progress * (targetCarb - startCarb);
+        const dsodium = startSodium + progress * (targetSodium - startSodium);
 
-        const rampedParams = new DailyParams(dcal, dcarb, dsodium, dact);
-        rampedParams.ramped = i > lastDay; // It's only 'ramping' if we are past the start day
-        paramtraj.push(rampedParams);
-      } else {
-        paramtraj.push(currentParams);
+        const ramped = new DailyParams(dcal, dcarb, dsodium, dact);
+        ramped.ramped = day > startDay;
+        return ramped;
       }
+
+      return currentParams;
+    };
+
+    const paramtraj = [];
+    for (let i = 0; i < simlength; i++) {
+      paramtraj.push(getParamsAt(i));
     }
     return paramtraj;
   }

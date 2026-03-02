@@ -1,5 +1,8 @@
 import BodyModel from './bodymodel.js';
-import { Limits, Solver as SolverConst } from './constants.js';
+import DailyParams from './dailyparams.js';
+import * as Physiology from './physiology.js';
+import { Solver } from './solver.js';
+import { Limits } from './constants.js';
 
 export default class Intervention {
   constructor(
@@ -20,6 +23,7 @@ export default class Intervention {
   }
 
   static forgoal(baseline, goalwt, goaltime, actchangepercent, mincals, eps) {
+    const physState = Physiology.createPhysiologicalState(baseline);
     const goalinter = new Intervention();
     goalinter.title = 'Goal Intervention';
     goalinter.day = 1;
@@ -32,39 +36,38 @@ export default class Intervention {
       goalinter.calories = baseline.getMaintCals();
       goalinter.setproportionalsodium(baseline);
     } else {
-      const starvtest = BodyModel.projectFromBaselineViaIntervention(baseline, goalinter, goaltime);
-      const starvwt = Math.max(0, starvtest.getWeight(baseline));
-      let error = Math.abs(starvwt - goalwt);
+      const starvFn = (cals) => {
+        const tempInter = new Intervention(1, cals, baseline.carbIntakePct, actchangepercent);
+        tempInter.setproportionalsodium(baseline);
+        const res = BodyModel.projectFromPhysState(
+          physState,
+          DailyParams.createFromIntervention(tempInter, baseline),
+          goaltime
+        );
+        const wt = res.getWeight(physState);
+        return isNaN(wt) ? 0 : Math.max(0, wt);
+      };
+
+      const starvwt = Math.max(0, starvFn(mincals));
+      const error = Math.abs(starvwt - goalwt);
 
       if (error < eps || goalwt <= starvwt) {
         goalinter.calories = 0.0;
         throw new Error('Unachievable Goal');
       }
 
-      let checkcals = mincals;
-      let calstep = SolverConst.INITIAL_CAL_STEP;
-      let PCXerror = 0;
+      // Use generic solver.
+      const maxCals = 10000.0;
 
-      do {
-        const holdcals = checkcals;
-        checkcals += calstep;
-        goalinter.calories = checkcals;
-        goalinter.setproportionalsodium(baseline);
-
-        const testbc = BodyModel.projectFromBaselineViaIntervention(baseline, goalinter, goaltime);
-        const testwt = testbc.getWeight(baseline);
-
-        if (testwt < 0.0) {
-          PCXerror++;
-          if (PCXerror > SolverConst.PCX_ERROR_THRESHOLD) throw new Error('Unachievable Goal');
-        }
-        error = Math.abs(goalwt - testwt);
-
-        if (error > eps && testwt > goalwt) {
-          calstep /= 2.0;
-          checkcals = holdcals;
-        }
-      } while (error > eps);
+      goalinter.calories = Solver.binarySearch(starvFn, goalwt, mincals, maxCals, eps);
+      goalinter.setproportionalsodium(baseline);
+      
+      // Post-check for stability and accuracy
+      const finalWeight = starvFn(goalinter.calories);
+      const finalError = Math.abs(finalWeight - goalwt);
+      if (finalWeight <= 0 || isNaN(finalWeight) || finalError > eps * 10) {
+        throw new Error('Unachievable Goal');
+      }
     }
     return goalinter;
   }

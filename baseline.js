@@ -212,6 +212,10 @@ export default class Baseline {
   }
 
   getNewTEE(bodyModel, dailyParams) {
-    return bodyModel.getTEE(this, dailyParams);
+    return bodyModel.getTEE(this.toPhysiologicalState(), dailyParams);
+  }
+
+  toPhysiologicalState() {
+    return Physiology.createPhysiologicalState(this);
   }
 }

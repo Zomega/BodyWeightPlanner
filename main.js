@@ -1152,7 +1152,10 @@ class App {
 
       const maintInt = new Intervention();
       maintInt.actchangepercent = maintActivityChange;
-      maintInt.calories = goalBC.cals4balance(this.baseline, maintInt.getAct(this.baseline));
+      maintInt.calories = goalBC.cals4balance(
+        this.baseline.toPhysiologicalState(),
+        maintInt.getAct(this.baseline)
+      );
 
       const goalMaintRes = document.getElementById('goal-maint-cals');
       if (goalMaintRes) goalMaintRes.textContent = Math.round(maintInt.calories * energyMult);
@@ -1188,6 +1191,7 @@ class App {
       );
       this.clearError('goal-weight');
     } catch (e) {
+      console.error('Goal simulation error:', e);
       if (e.message.includes('Unachievable Goal')) {
         this.showError(
           'goal-weight',
@@ -1281,40 +1285,42 @@ class App {
 
   collectTrajectoryData(baseline, goalInt, maintInt, goalDays, simLength) {
     const data = [];
+    const physState = baseline.toPhysiologicalState();
     const goalParams = DailyParams.createFromIntervention(goalInt, baseline);
     const maintParams = DailyParams.createFromIntervention(maintInt, baseline);
-    let model = BodyModel.createFromBaseline(baseline);
+    let model = BodyModel.createFromPhysState(physState);
 
     for (let i = 0; i <= simLength; i++) {
       const params = i < goalDays ? goalParams : maintParams;
-      data.push(this.getDetailedRow(i, model, baseline, params));
-      model = BodyModel.RungeKatta(model, baseline, params);
+      data.push(this.getDetailedRow(i, model, baseline, physState, params));
+      model = BodyModel.RungeKatta(model, physState, params);
     }
     return data;
   }
 
   collectMultiTrajectoryData(baseline, interventions, simLength) {
     const data = [];
+    const physState = baseline.toPhysiologicalState();
     const paramsTraj = DailyParams.makeparamtrajectory(baseline, interventions, simLength + 1);
-    let model = BodyModel.createFromBaseline(baseline);
+    let model = BodyModel.createFromPhysState(physState);
 
     for (let i = 0; i <= simLength; i++) {
       const p = paramsTraj[i] || paramsTraj[paramsTraj.length - 1];
-      data.push(this.getDetailedRow(i, model, baseline, p));
-      model = BodyModel.RungeKatta(model, baseline, p);
+      data.push(this.getDetailedRow(i, model, baseline, physState, p));
+      model = BodyModel.RungeKatta(model, physState, p);
     }
     return data;
   }
 
-  getDetailedRow(day, model, baseline, params) {
-    const weight = model.getWeight(baseline);
-    const fatPercent = model.getFatPercent(baseline);
-    const bmi = BMIUtils.calculate(weight, baseline.height);
+  getDetailedRow(day, model, baseline, physState, params) {
+    const weight = model.getWeight(physState);
+    const fatPercent = model.getFatPercent(physState);
+    const bmi = BMIUtils.calculate(weight, physState.height);
     let value = fatPercent;
     if (this.chartView === 'weight') value = weight;
     if (this.chartView === 'bmi') value = bmi;
 
-    return {
+    const row = {
       day,
       weight,
       fatPercent,
@@ -1322,9 +1328,14 @@ class App {
       fat: model.fat,
       lean: model.lean,
       calories: params.calories,
-      tee: model.getTEE(baseline, params),
+      tee: model.getTEE(physState, params),
       value: this.chartView === 'weight' && !this.isMetric ? value * 2.20462 : value,
     };
+
+    if (day === 0 || day === 180) {
+      // row logging removed
+    }
+    return row;
   }
 
   exportCSV() {
@@ -1353,7 +1364,7 @@ class App {
         this.chart.options.plugins.annotation.annotations.goalLine.value = undefined;
       }
     }
-    this.chart.update('none');
+    this.chart.update();
   }
 
   clearResults() {

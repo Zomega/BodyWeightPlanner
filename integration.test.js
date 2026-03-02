@@ -17,9 +17,9 @@ test('Intervention.forgoal calculates calories for weight loss', (_t) => {
   // Lose 5kg in 180 days
   const goalInter = Intervention.forgoal(b, 65, 180, 0, 0, 0.001);
 
-  // We expect calories to be less than maintenance (2746)
-  assert.ok(goalInter.calories < 2746);
-  assert.ok(goalInter.calories > 1500); // Sanity check
+  // We expect calories to be significantly less than maintenance (~2746)
+  assert.ok(goalInter.calories < 2700, `Calories ${goalInter.calories} should be less than 2700`);
+  assert.ok(goalInter.calories > 1500, `Calories ${goalInter.calories} should be more than 1500`);
 });
 
 test('Unachievable goal throws error', (_t) => {

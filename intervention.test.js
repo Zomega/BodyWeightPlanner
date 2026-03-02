@@ -14,7 +14,11 @@ test('Intervention constructor - constraints and defaults', () => {
   assert.strictEqual(int.calories, 0, 'Calories should be clamped to >= 0');
   assert.strictEqual(int.carbinpercent, 100, 'Carb % should be clamped to <= 100');
   assert.strictEqual(int.actchangepercent, -100, 'Act change % should be clamped to >= -100');
-  assert.strictEqual(int.sodium, Limits.MAX_SODIUM, `Sodium should be clamped to ${Limits.MAX_SODIUM}`);
+  assert.strictEqual(
+    int.sodium,
+    Limits.MAX_SODIUM,
+    `Sodium should be clamped to ${Limits.MAX_SODIUM}`
+  );
 });
 
 test('Intervention.getAct - baseline dependency', () => {
@@ -53,7 +57,6 @@ test('Intervention.forgoal - search loop survivors', () => {
   const b = createDefaultBaseline();
 
   // Test testwt > goalwt condition by setting goal higher than maintenance
-  // This ensures we exercise the calstep adjustment logic
   const gHigh = Intervention.forgoal(b, 75, 10, 0, 0, 0.001);
   assert.ok(gHigh.calories > b.getMaintCals());
 });
@@ -61,9 +64,6 @@ test('Intervention.forgoal - search loop survivors', () => {
 test('Intervention.forgoal - precision and arithmetic', () => {
   const b = createDefaultBaseline();
 
-  // Case where testwt > goalwt (too many calories)
-  // start with 70kg, goal 71kg. search will start at starvwt (~69) and increase.
-  // If it overshoots, it will half the step.
   const g = Intervention.forgoal(b, 71, 10, 0, 0, 0.00001);
   assert.ok(g.calories > b.getMaintCals());
 });
@@ -76,16 +76,16 @@ test('Intervention.forgoal - starvation comparison mutants', () => {
   goalinter.setproportionalsodium(b);
 
   // 1 day simulation is very stable
-  const starvWeight = BodyModel.projectFromBaselineViaIntervention(b, goalinter, 1).getWeight(b);
+  const starvWeight = BodyModel.projectFromBaselineViaIntervention(b, goalinter, 1).getWeight(
+    b.toPhysiologicalState()
+  );
 
   // Default: error < eps (eps < eps is false) -> No Throw
-  // Mutant: error <= eps (eps <= eps is true) -> Throw
   assert.doesNotThrow(() => {
     Intervention.forgoal(b, starvWeight + eps + 1e-15, 1, 0, 0, eps);
   });
 
   // Default: goalwt <= starvwt (true) -> Throw
-  // Mutant: goalwt < starvwt (false) -> No Throw
   assert.throws(() => {
     Intervention.forgoal(b, starvWeight, 1, 0, 0, eps);
   }, /Unachievable Goal/);
@@ -99,7 +99,9 @@ test('Intervention.forgoal - search loop boundary check', () => {
   const goalinter = new Intervention();
   goalinter.calories = 0;
   goalinter.setproportionalsodium(b);
-  const starvWeight = BodyModel.projectFromBaselineViaIntervention(b, goalinter, 10).getWeight(b);
+  const starvWeight = BodyModel.projectFromBaselineViaIntervention(b, goalinter, 10).getWeight(
+    b.toPhysiologicalState()
+  );
 
   // If goalwt exactly starvwt, it should throw (goalwt <= starvwt)
   assert.throws(() => {
